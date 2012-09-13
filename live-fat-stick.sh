@@ -85,8 +85,8 @@ if [[ -f $stickmount/fatstick ]]; then
 cat <<EOF >>$stickmount/syslinux.cfg
 
 LABEL $isoname
-        kernel boot/i386/loader/linux
-          append initrd=boot/i386/loader/initrd ramdisk_size=512000 ramdisk_blocksize=4096 isofrom=/dev/disk/by-uuid/$stickuuid:/$isoname showopts 
+        kernel linux
+          append initrd=initrd ramdisk_size=512000 ramdisk_blocksize=4096 isofrom=/dev/disk/by-uuid/$stickuuid:/$isoname loader=syslinux showopts 
 
 EOF
 	fi
@@ -99,50 +99,38 @@ else
 	parted $stickdevice set $stickpart boot on &>/dev/null
 	echo "copying /boot from iso image to $2"
 	cp -r $isomount/boot $stickmount/
-	echo "copying vesamenu.c32 for graphical boot menu"
-	cp /usr/share/syslinux/vesamenu.c32 $stickmount/
-	cp /usr/share/backgrounds/live-fat-stick.png $stickmount/background.png &>/dev/null || echo "please copy any 800x600 png image to the usb stick background.png"
+	rm $stickmount/syslinux.cfg
+	mv $isomount/boot/i386/loader $isomount/boot/syslinux
 	echo "creating menu entries"
-	cat <<EOF >$stickmount/syslinux.cfg
-default vesamenu.c32
-MENU BACKGROUND background.png 
-MENU TITLE Welcome to openSUSE Edu Li-f-e
-MENU WIDTH 65
-MENU MARGIN 15
-MENU ROWS 12
-MENU TABMSGROW 18
-MENU CMDLINEROW 12
-MENU ENDROW 24
-MENU TIMEOUTROW 20
-ONTIMEOUT openSUSE-Edu-Li-f-e-12.2.1
-
-ALLOWOPTIONS 0
-PROMPT 0
-IMPLICIT 1
-OPTIONS 1
-TIMEOUT 50
+	cat <<EOF >$stickmount/boot/syslinux/syslinux.cfg
+implicit 1
+prompt   1
+timeout  100
+display isolinux.msg
+ui gfxboot bootlogo isolinux.msg
+default openSUSE-Edu-Li-f-e-12.2.1
 
 LABEL openSUSE-Edu-Li-f-e-12.2.1
-        kernel boot/i386/loader/linux
-          append initrd=boot/i386/loader/initrd ramdisk_size=512000 ramdisk_blocksize=4096 isofrom=/dev/disk/by-uuid/$stickuuid:/$isoname showopts 
+        kernel linux
+          append initrd=initrd ramdisk_size=512000 ramdisk_blocksize=4096 isofrom=/dev/disk/by-uuid/$stickuuid:/$isoname loader=syslinux showopts 
 
 label install
-  kernel boot/i386/loader/linux
-  append initrd=boot/i386/loader/initrd ramdisk_size=512000 ramdisk_blocksize=4096 isofrom=/dev/disk/by-uuid/$stickuuid:/$isoname splash=silent quiet liveinstall showopts
+  kernel linux
+  append initrd=initrd ramdisk_size=512000 ramdisk_blocksize=4096 isofrom=/dev/disk/by-uuid/$stickuuid:/$isoname splash=silent quiet liveinstall loader=syslinux showopts
 
 label Gnome
-kernel boot/i386/loader/linux
-append initrd=boot/i386/loader/initrd ramdisk_size=512000 ramdisk_blocksize=4096 isofrom=/dev/disk/by-uuid/$stickuuid:/$isoname splash=silent quiet gnome showopts
+kernel linux
+append initrd=initrd ramdisk_size=512000 ramdisk_blocksize=4096 isofrom=/dev/disk/by-uuid/$stickuuid:/$isoname splash=silent quiet gnome loader=syslinux showopts
 
 label Cinnamon
-kernel boot/i386/loader/linux
-append initrd=boot/i386/loader/initrd ramdisk_size=512000 ramdisk_blocksize=4096 isofrom=/dev/disk/by-uuid/$stickuuid:/$isoname splash=silent quiet cinnamon showopts
+kernel linux
+append initrd=initrd ramdisk_size=512000 ramdisk_blocksize=4096 isofrom=/dev/disk/by-uuid/$stickuuid:/$isoname splash=silent quiet cinnamon loader=syslinux showopts
 
 label harddisk
   localboot 0x80
 
 label memtest
-  kernel boot/i386/loader/memtest
+  kernel memtest
 EOF
 fi
 touch $stickmount/fatstick
