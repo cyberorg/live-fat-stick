@@ -101,7 +101,7 @@ else
 	cp -r $isomount/boot $stickmount/
 	echo "copying vesamenu.c32 for graphical boot menu"
 	cp /usr/share/syslinux/vesamenu.c32 $stickmount/
-	cp /srv/tftpboot/thin.png $stickmount/background.png || echo "please copy any 800x600 png image to the usb stick background.png"
+	cp /usr/share/backgrounds/live-fat-stick.png $stickmount/background.png &>dev/null || echo "please copy any 800x600 png image to the usb stick background.png"
 	echo "creating menu entries"
 	cat <<EOF >$stickmount/syslinux.cfg
 default vesamenu.c32
