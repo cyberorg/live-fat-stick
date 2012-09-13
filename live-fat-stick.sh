@@ -89,7 +89,7 @@ if [[ -f $stickmount/fatstick ]]; then
 	cp $isomount/boot/*/loader/linux $stickmount/boot/syslinux/linux-$isonameshort
 	cp $isomount/boot/*/loader/initrd $stickmount/boot/syslinux/initrd-$isonameshort
 	echo "adding new image to boot menu"
-cat <<EOF >>$stickmount/syslinux.cfg
+cat <<EOF >>$stickmount/boot/syslinux/syslinux.cfg
 
 LABEL $isonameshort
         kernel linux-$isonameshort
