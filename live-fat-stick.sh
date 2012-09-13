@@ -102,7 +102,7 @@ cat <<EOF >>$stickmount/boot/syslinux/syslinux.cfg
 
 LABEL $isonameshort
         kernel linux-$isonameshort
-          append initrd=initrd-$isonameshort ramdisk_size=512000 ramdisk_blocksize=4096 isofrom=/dev/disk/by-uuid/$stickuuid:/$isoname loader=syslinux showopts 
+          append initrd=initrd-$isonameshort ramdisk_size=512000 ramdisk_blocksize=4096 isofrom=/dev/disk/by-uuid/$stickuuid:/$isoname loader=syslinux splash=silent quiet showopts 
 
 EOF
 	fi
@@ -131,7 +131,7 @@ default openSUSE-Edu-Li-f-e-12.2.1
 
 LABEL openSUSE-Edu-Li-f-e-12.2.1
         kernel linux-$isonameshort
-          append initrd=initrd-$isonameshort ramdisk_size=512000 ramdisk_blocksize=4096 isofrom=/dev/disk/by-uuid/$stickuuid:/$isoname loader=syslinux showopts 
+          append initrd=initrd-$isonameshort ramdisk_size=512000 ramdisk_blocksize=4096 isofrom=/dev/disk/by-uuid/$stickuuid:/$isoname loader=syslinux splash=silent quiet showopts 
 
 label install
   kernel linux-$isonameshort
