@@ -55,6 +55,7 @@ stickmount=/run/tmpstickmount
 stickdevice=$(echo $2 | sed 's/[0-9]*//g')
 stickbase=$(basename $2)
 isoname=$(basename $1)
+isonameshort=$(echo $isoname | cut -d "-" -f 1,2,3)
 stickuuid=$(ls -l /dev/disk/by-uuid/ |grep $stickbase | cut -d " " -f 9)
 stickpart=$(basename $2 | sed 's/[a-z]*//g')
 
@@ -81,12 +82,15 @@ mount $2 $stickmount
 if [[ -f $stickmount/fatstick ]]; then
         echo "the stick is already bootable stick"
 	if [[ ! -f $stickmount/$isoname ]]; then
+	echo "copying kernel and initrd from the $isoname"
+	cp $isomount/boot/*/loader/linux $stickmount/boot/syslinux/linux-$isonameshort
+	cp $isomount/boot/*/loader/initrd $stickmount/boot/syslinux/initrd-$isonameshort
 	echo "adding new image to boot menu"
 cat <<EOF >>$stickmount/syslinux.cfg
 
-LABEL $isoname
-        kernel linux
-          append initrd=initrd ramdisk_size=512000 ramdisk_blocksize=4096 isofrom=/dev/disk/by-uuid/$stickuuid:/$isoname loader=syslinux showopts 
+LABEL $isonameshort
+        kernel linux-$isonameshort
+          append initrd=initrd-$isonameshort ramdisk_size=512000 ramdisk_blocksize=4096 isofrom=/dev/disk/by-uuid/$stickuuid:/$isoname loader=syslinux showopts 
 
 EOF
 	fi
@@ -99,9 +103,12 @@ else
 	parted $stickdevice set $stickpart boot on &>/dev/null
 	echo "copying /boot from iso image to $2"
 	cp -r $isomount/boot $stickmount/
-	rm $stickmount/syslinux.cfg
-	mv $isomount/boot/i386/loader $isomount/boot/syslinux
+	rm $stickmount/syslinux.cfg &>/dev/null
+	mv $stickmount/boot/i386/loader $stickmount/boot/syslinux
+	mv $stickmount/boot/syslinux/linux $stickmount/boot/syslinux/linux-$isonameshort
+	mv $stickmount/boot/syslinux/initrd $stickmount/boot/syslinux/initrd-$isonameshort
 	echo "creating menu entries"
+	if echo $isoname | grep -qi "Li-f-e"; then
 	cat <<EOF >$stickmount/boot/syslinux/syslinux.cfg
 implicit 1
 prompt   1
@@ -111,20 +118,20 @@ ui gfxboot bootlogo isolinux.msg
 default openSUSE-Edu-Li-f-e-12.2.1
 
 LABEL openSUSE-Edu-Li-f-e-12.2.1
-        kernel linux
-          append initrd=initrd ramdisk_size=512000 ramdisk_blocksize=4096 isofrom=/dev/disk/by-uuid/$stickuuid:/$isoname loader=syslinux showopts 
+        kernel linux-$isonameshort
+          append initrd=initrd-$isonameshort ramdisk_size=512000 ramdisk_blocksize=4096 isofrom=/dev/disk/by-uuid/$stickuuid:/$isoname loader=syslinux showopts 
 
 label install
-  kernel linux
-  append initrd=initrd ramdisk_size=512000 ramdisk_blocksize=4096 isofrom=/dev/disk/by-uuid/$stickuuid:/$isoname splash=silent quiet liveinstall loader=syslinux showopts
+  kernel linux-$isonameshort
+  append initrd=initrd-$isonameshort ramdisk_size=512000 ramdisk_blocksize=4096 isofrom=/dev/disk/by-uuid/$stickuuid:/$isoname splash=silent quiet liveinstall loader=syslinux showopts
 
 label Gnome
-kernel linux
-append initrd=initrd ramdisk_size=512000 ramdisk_blocksize=4096 isofrom=/dev/disk/by-uuid/$stickuuid:/$isoname splash=silent quiet gnome loader=syslinux showopts
+kernel linux-$isonameshort
+append initrd=initrd-$isonameshort ramdisk_size=512000 ramdisk_blocksize=4096 isofrom=/dev/disk/by-uuid/$stickuuid:/$isoname splash=silent quiet gnome loader=syslinux showopts
 
 label Cinnamon
-kernel linux
-append initrd=initrd ramdisk_size=512000 ramdisk_blocksize=4096 isofrom=/dev/disk/by-uuid/$stickuuid:/$isoname splash=silent quiet cinnamon loader=syslinux showopts
+kernel linux-$isonameshort
+append initrd=initrd-$isonameshort ramdisk_size=512000 ramdisk_blocksize=4096 isofrom=/dev/disk/by-uuid/$stickuuid:/$isoname splash=silent quiet cinnamon loader=syslinux showopts
 
 label harddisk
   localboot 0x80
@@ -132,6 +139,23 @@ label harddisk
 label memtest
   kernel memtest
 EOF
+	else
+        cat <<EOF >$stickmount/boot/syslinux/syslinux.cfg
+implicit 1
+prompt   1
+timeout  100
+display isolinux.msg
+ui gfxboot bootlogo isolinux.msg
+default $isonameshort
+
+LABEL $isoname
+        kernel linux-$isonameshort
+          append initrd=initrd-$isonameshort ramdisk_size=512000 ramdisk_blocksize=4096 isofrom=/dev/disk/by-uuid/$stickuuid:/$isoname loader=syslinux showopts 
+
+label harddisk
+  localboot 0x80
+EOF
+	fi
 fi
 touch $stickmount/fatstick
 if [[ ! -f $stickmount/$isoname ]]; then
