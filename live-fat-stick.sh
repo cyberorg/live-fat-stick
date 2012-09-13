@@ -52,11 +52,11 @@ if [[ ! -e /usr/bin/syslinux ]]; then
 	echo "syslinux not found, please install syslinux package"
 	exit
 fi
-if [[ ! -f $1 ]]; then
+if [[ ! -e $1 ]]; then
 	echo "File $1 does not exist"
 	exit
 fi
-if [[ ! -f $2 ]]; then
+if [[ ! -e $2 ]]; then
         echo "Device $2 does not exist"
         exit
 fi
