@@ -52,6 +52,10 @@ if [[ ! -e /usr/bin/syslinux ]]; then
 	echo "syslinux not found, please install syslinux package"
 	exit
 fi
+if [[ ! -e $2 ]]; then
+	echo "Device $2 does not exist"
+	exit
+fi
 #variables
 isomount=/run/tmpisomount
 stickmount=/run/tmpstickmount
