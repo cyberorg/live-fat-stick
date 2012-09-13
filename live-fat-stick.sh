@@ -27,6 +27,9 @@ e.g.: live-fat-stick.sh /home/geeko/openSUSE-Edu-li-f-e-12.2-1-i686.iso /dev/sdb
      isopath should be full absolute path of iso image and the device should be 
      actual partition on the stick like /dev/sdb1, /dev/sdc1,/dev/sdc2...
      run fdisk -l to find out the usb stick partition.
+
+     It is It is possible to boot multiple iso images from same stick, 
+     should work with all recent openSUSE live iso images. 
 EOF
 }
 
