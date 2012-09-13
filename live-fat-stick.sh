@@ -49,6 +49,7 @@ if [[ ! -e /usr/bin/syslinux ]]; then
 	echo "syslinux not found, please install syslinux package"
 	exit
 fi
+#variables
 isomount=/run/tmpisomount
 stickmount=/run/tmpstickmount
 stickdevice=$(echo $2 | sed 's/[0-9]*//g')
@@ -56,16 +57,31 @@ stickbase=$(basename $2)
 isoname=$(basename $1)
 stickuuid=$(ls -l /dev/disk/by-uuid/ |grep $stickbase | cut -d " " -f 9)
 stickpart=$(basename $2 | sed 's/[a-z]*//g')
-echo "isomount: $isomount stickmount: $stickmount stickdevice: $stickdevice stickbase: $stickbase isoname: $isoname stickuuid: $stickuuid stickpart: $stickpart"
-syslinux -i $2
-dd if=/usr/share/syslinux/mbr.bin of=$stickdevice
-parted $stickdevice set $stickpart boot on
-mkdir $isomount $stickmount
-umount $2
+
+are_you_sure ()  {
+        echo  -n "$1 [$2/$3]? "
+        while true; do
+                read answer
+                case $answer in
+                        y | Y | yes | YES ) answer="y"; break;;
+                        n | N | no | NO ) exit;;
+                        *) echo "Please answer yes or no.";;
+                esac
+        done
+}
+echo "Please make sure the following information is correct:"
+echo "iso name: $isoname stick device: $stickdevice"
+echo "stick uuid: /dev/disk/by-uuid/$stickuuid stick partition: $stickpart"
+are_you_sure "continue ?" "y" "n"
+mkdir $isomount $stickmount &>/dev/null
+#umount the stick if it is mounted
+umount $2 &>/dev/null || true
 mount $1 $isomount
 mount $2 $stickmount
 if [[ -f $stickmount/fatstick ]]; then
-        echo "the stick is already bootable stick, adding new image to boot menu"
+        echo "the stick is already bootable stick"
+	if [[ ! -f $stickmount/$isoname ]]; then
+	echo "adding new image to boot menu"
 cat <<EOF >>$stickmount/syslinux.cfg
 
 LABEL $isoname
@@ -73,10 +89,20 @@ LABEL $isoname
           append initrd=boot/i386/loader/initrd ramdisk_size=512000 ramdisk_blocksize=4096 isofrom=/dev/disk/by-uuid/$stickuuid:/$isoname showopts 
 
 EOF
+	fi
 else
+	echo "installing syslinux on $2"
+	syslinux -i $2
+	echo "replacing mbr of $stickdevice with syslinux mbr.bin"
+	dd if=/usr/share/syslinux/mbr.bin of=$stickdevice &>/dev/null
+	echo "setting $stickdevice partition $stickpart active"
+	parted $stickdevice set $stickpart boot on &>/dev/null
+	echo "copying /boot from iso image to $2"
 	cp -r $isomount/boot $stickmount/
+	echo "copying vesamenu.c32 for graphical boot menu"
 	cp /usr/share/syslinux/vesamenu.c32 $stickmount/
-	cp /srv/tftpboot/thin.png $stickmount/background.png || true
+	cp /srv/tftpboot/thin.png $stickmount/background.png || echo "please copy any 800x600 png image to the usb stick background.png"
+	echo "creating menu entries"
 	cat <<EOF >$stickmount/syslinux.cfg
 default vesamenu.c32
 MENU BACKGROUND background.png 
@@ -120,6 +146,13 @@ label memtest
 EOF
 fi
 touch $stickmount/fatstick
-cp $1 $stickmount/
-umount $stickmount $isomount && rm -rf $stickmount $isomount
-
+if [[ ! -f $stickmount/$isoname ]]; then
+	echo "copying $1 to usb stick"
+	cp $1 $stickmount/
+else
+	echo "$isoname already exists on the stick, doing nothing"
+fi
+sync
+umount $stickmount $isomount &>/dev/null && rm -rf $stickmount $isomount
+echo "Your bootable usb stick is now ready"
+echo "have a lot of fun..."
