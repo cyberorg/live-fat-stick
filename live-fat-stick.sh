@@ -1,5 +1,5 @@
 #!/bin/bash
-# create-bootable-fat-stick.sh
+# live-fat-stick.sh
 #
 # Copyright (c) 2012 CyberOrg Info
 # This program is free software; you can redistribute it and/or modify it under
@@ -22,8 +22,8 @@
 need_help() {
 	cat <<EOF
 run this command as root
-create-bootable-fat-stick.sh isopath stickpartition
-e.g.: create-bootable-fat-stick.sh /home/geeko/openSUSE-Edu-li-f-e-12.2-1-i686.iso /dev/sdbX
+live-fat-stick.sh isopath stickpartition
+e.g.: live-fat-stick.sh /home/geeko/openSUSE-Edu-li-f-e-12.2-1-i686.iso /dev/sdbX
      isopath should be full absolute path of iso image and the device should be 
      actual partition on the stick like /dev/sdb1, /dev/sdc1,/dev/sdc2...
      run fdisk -l to find out the usb stick partition.
