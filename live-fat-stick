@@ -98,8 +98,14 @@ are_you_sure "continue ?" "y" "n"
 mkdir $isomount $stickmount &>/dev/null
 #umount the stick if it is mounted
 umount $2 &>/dev/null || true
-mount $1 $isomount
-mount $2 $stickmount
+if ! mount $1 $isomount &>/dev/null; then
+	echo "unable to mount the iso image"
+	exit
+fi
+if ! mount $2 $stickmount &>/dev/null; then
+	echo "unable to mount the usb stick partition"
+	exit
+fi
 if [[ -f $stickmount/fatstick ]]; then
         echo "the stick is already bootable stick"
 	if [[ ! -f $stickmount/$isoname ]]; then
