@@ -19,6 +19,20 @@
 # Authors:      Jigish Gohil <cyberorg@opensuse.org>
 # This script creates bootable openSUSE live usb stick on fat partition
 #
+clean_up () {
+	sync
+	if [[ $1 == user_killed ]] ; then
+		echo "aborting and cleaning up"
+		umount $stickmount $isomount &>/dev/null && rm -rf $stickmount $isomount
+		exit
+	else
+		echo "cleaning up"
+		umount $stickmount $isomount &>/dev/null && rm -rf $stickmount $isomount
+		echo "Your bootable usb stick is now ready"
+		echo "have a lot of fun..."
+	fi
+}
+trap "clean_up user_killed" SIGINT SIGTERM
 need_help() {
 	cat <<EOF
 run this command as root
@@ -79,7 +93,11 @@ isoname=$(basename $1)
 isonameshort=$(echo $isoname | cut -d "-" -f 1,2,3)
 stickuuid=$(ls -l /dev/disk/by-uuid/ |grep $stickbase | cut -d " " -f 9)
 stickpart=$(basename $2 | sed 's/[a-z]*//g')
-
+syslinuxpath=$stickmount/boot/syslinux
+stickdevpart=$2
+if echo $isoname | grep -qi "Li-f-e"; then
+	isonameshort=openSUSE-Edu-Li-f-e
+fi
 are_you_sure ()  {
         echo  -n "$1 [$2/$3]? "
         while true; do
@@ -91,13 +109,66 @@ are_you_sure ()  {
                 esac
         done
 }
+syslinux_stuff () {
+	echo "installing syslinux on $stickdevpart"
+	syslinux -i $stickdevpart
+	echo "replacing mbr of $stickdevice with syslinux mbr.bin"
+	dd if=/usr/share/syslinux/mbr.bin of=$stickdevice &>/dev/null
+	echo "setting $stickdevice partition $stickpart active"
+	parted $stickdevice set $stickpart boot on &>/dev/null
+	mount $stickdevpart $stickmount &>/dev/null
+	echo "copying /boot from iso image to $stickdevpart"
+	cp -r $isomount/boot $stickmount/
+	rm $stickmount/syslinux.cfg &>/dev/null
+	mv $stickmount/boot/i386/loader $syslinuxpath
+	mv $syslinuxpath/linux $syslinuxpath/linux-$isonameshort
+	mv $syslinuxpath/initrd $syslinuxpath/initrd-$isonameshort
+}
+add_harddisk_section () {
+	if ! grep -q localboot $syslinuxpath/syslinux.cfg; then
+	        cat <<EOF >>$syslinuxpath/syslinux.cfg
+
+label harddisk
+  	localboot 0x80
+EOF
+	fi
+}
+add_menu_section () {
+	cat <<EOF >>$syslinuxpath/syslinux.cfg
+
+LABEL $isonameshort
+        kernel linux-$isonameshort
+          append initrd=initrd-$isonameshort ramdisk_size=512000 ramdisk_blocksize=4096 isofrom=/dev/disk/by-uuid/$stickuuid:/$isoname loader=syslinux splash=silent quiet showopts 
+
+EOF
+	if echo $isoname | grep -qi "Li-f-e"; then
+	cat <<EOF >>$syslinuxpath/syslinux.cfg
+label install
+	kernel linux-$isonameshort
+	append initrd=initrd-$isonameshort ramdisk_size=512000 ramdisk_blocksize=4096 isofrom=/dev/disk/by-uuid/$stickuuid:/$isoname splash=silent quiet liveinstall loader=syslinux showopts
+
+label Gnome
+	kernel linux-$isonameshort
+	append initrd=initrd-$isonameshort ramdisk_size=512000 ramdisk_blocksize=4096 isofrom=/dev/disk/by-uuid/$stickuuid:/$isoname splash=silent quiet gnome loader=syslinux showopts
+
+label Cinnamon
+	kernel linux-$isonameshort
+	append initrd=initrd-$isonameshort ramdisk_size=512000 ramdisk_blocksize=4096 isofrom=/dev/disk/by-uuid/$stickuuid:/$isoname splash=silent quiet cinnamon loader=syslinux showopts
+
+label memtest
+	kernel memtest
+
+EOF
+	fi
+	add_harddisk_section
+
+}
+
 echo "Please make sure the following information is correct:"
 echo "iso name: $isoname stick device: $stickdevice"
 echo "stick uuid: /dev/disk/by-uuid/$stickuuid stick partition: $stickpart"
 are_you_sure "continue ?" "y" "n"
 mkdir $isomount $stickmount &>/dev/null
-#umount the stick if it is mounted
-umount $2 &>/dev/null || true
 if ! mount $1 $isomount &>/dev/null; then
 	echo "unable to mount the iso image"
 	exit
@@ -108,66 +179,18 @@ if ! mount $2 $stickmount &>/dev/null; then
 fi
 if [[ -f $stickmount/fatstick ]]; then
         echo "the stick is already bootable stick"
-	if [[ ! -f $stickmount/$isoname ]]; then
-	echo "copying kernel and initrd from the $isoname"
-	cp $isomount/boot/*/loader/linux $stickmount/boot/syslinux/linux-$isonameshort
-	cp $isomount/boot/*/loader/initrd $stickmount/boot/syslinux/initrd-$isonameshort
-	echo "adding new image to boot menu"
-cat <<EOF >>$stickmount/boot/syslinux/syslinux.cfg
-
-LABEL $isonameshort
-        kernel linux-$isonameshort
-          append initrd=initrd-$isonameshort ramdisk_size=512000 ramdisk_blocksize=4096 isofrom=/dev/disk/by-uuid/$stickuuid:/$isoname loader=syslinux splash=silent quiet showopts 
-
-EOF
+	if ! grep -q $isonameshort $syslinuxpath/syslinux.cfg; then
+		echo "copying kernel and initrd from the $isoname"
+		cp $isomount/boot/*/loader/linux $syslinuxpath/linux-$isonameshort
+		cp $isomount/boot/*/loader/initrd $syslinuxpath/initrd-$isonameshort
+		echo "adding new image to boot menu"
+		add_menu_section
 	fi
 else
-	echo "installing syslinux on $2"
-	syslinux -i $2
-	echo "replacing mbr of $stickdevice with syslinux mbr.bin"
-	dd if=/usr/share/syslinux/mbr.bin of=$stickdevice &>/dev/null
-	echo "setting $stickdevice partition $stickpart active"
-	parted $stickdevice set $stickpart boot on &>/dev/null
-	echo "copying /boot from iso image to $2"
-	cp -r $isomount/boot $stickmount/
-	rm $stickmount/syslinux.cfg &>/dev/null
-	mv $stickmount/boot/i386/loader $stickmount/boot/syslinux
-	mv $stickmount/boot/syslinux/linux $stickmount/boot/syslinux/linux-$isonameshort
-	mv $stickmount/boot/syslinux/initrd $stickmount/boot/syslinux/initrd-$isonameshort
+	umount $stickmount &>/dev/null || true
+	syslinux_stuff
 	echo "creating menu entries"
-	if echo $isoname | grep -qi "Li-f-e"; then
-	cat <<EOF >$stickmount/boot/syslinux/syslinux.cfg
-implicit 1
-prompt   1
-timeout  100
-display isolinux.msg
-ui gfxboot bootlogo isolinux.msg
-default openSUSE-Edu-Li-f-e-12.2.1
-
-LABEL openSUSE-Edu-Li-f-e-12.2.1
-        kernel linux-$isonameshort
-          append initrd=initrd-$isonameshort ramdisk_size=512000 ramdisk_blocksize=4096 isofrom=/dev/disk/by-uuid/$stickuuid:/$isoname loader=syslinux splash=silent quiet showopts 
-
-label install
-  kernel linux-$isonameshort
-  append initrd=initrd-$isonameshort ramdisk_size=512000 ramdisk_blocksize=4096 isofrom=/dev/disk/by-uuid/$stickuuid:/$isoname splash=silent quiet liveinstall loader=syslinux showopts
-
-label Gnome
-kernel linux-$isonameshort
-append initrd=initrd-$isonameshort ramdisk_size=512000 ramdisk_blocksize=4096 isofrom=/dev/disk/by-uuid/$stickuuid:/$isoname splash=silent quiet gnome loader=syslinux showopts
-
-label Cinnamon
-kernel linux-$isonameshort
-append initrd=initrd-$isonameshort ramdisk_size=512000 ramdisk_blocksize=4096 isofrom=/dev/disk/by-uuid/$stickuuid:/$isoname splash=silent quiet cinnamon loader=syslinux showopts
-
-label harddisk
-  localboot 0x80
-
-label memtest
-  kernel memtest
-EOF
-	else
-        cat <<EOF >$stickmount/boot/syslinux/syslinux.cfg
+	cat <<EOF >$syslinuxpath/syslinux.cfg
 implicit 1
 prompt   1
 timeout  100
@@ -175,14 +198,8 @@ display isolinux.msg
 ui gfxboot bootlogo isolinux.msg
 default $isonameshort
 
-LABEL $isoname
-        kernel linux-$isonameshort
-          append initrd=initrd-$isonameshort ramdisk_size=512000 ramdisk_blocksize=4096 isofrom=/dev/disk/by-uuid/$stickuuid:/$isoname loader=syslinux showopts 
-
-label harddisk
-  localboot 0x80
 EOF
-	fi
+	add_menu_section
 fi
 touch $stickmount/fatstick
 if [[ ! -f $stickmount/$isoname ]]; then
@@ -191,7 +208,5 @@ if [[ ! -f $stickmount/$isoname ]]; then
 else
 	echo "$isoname already exists on the stick, doing nothing"
 fi
-sync
-umount $stickmount $isomount &>/dev/null && rm -rf $stickmount $isomount
-echo "Your bootable usb stick is now ready"
-echo "have a lot of fun..."
+clean_up
+
