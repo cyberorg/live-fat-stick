@@ -1,5 +1,5 @@
 #!/bin/bash
-# live-fat-stick.sh
+# live-fat-stick
 #
 # Copyright (c) 2012 CyberOrg Info
 # This program is free software; you can redistribute it and/or modify it under
@@ -22,11 +22,11 @@
 need_help() {
 	cat <<EOF
 run this command as root
-live-fat-stick.sh isopath stickpartition
-e.g.: live-fat-stick.sh /home/geeko/openSUSE-Edu-li-f-e-12.2-1-i686.iso /dev/sdbX
+live-fat-stick isopath stickpartition
+e.g.: live-fat-stick /home/geeko/openSUSE-Edu-li-f-e-12.2-1-i686.iso /dev/sdbX
      isopath should be full absolute path of iso image and the device should be 
      actual partition on the stick like /dev/sdb1, /dev/sdc1,/dev/sdc2...
-     run fdisk -l to find out the usb stick partition.
+     run live-fat-stick -l to list the possible usb sticks available.
 
      It is It is possible to boot multiple iso images from same stick, 
      should work with all recent openSUSE live iso images. 
@@ -43,9 +43,18 @@ if [[ x"$1" == x ]]; then
 	need_help
 	exit
 fi
+if [[ x"$1" == x"-l" ]]; then
+        echo "Here is the list of possible usb stick devices on your computer,"
+        echo "use the correct one:"
+        echo "$(for i in $(find /dev/disk/by-id/ |grep usb); do readlink -f $i;done)"
+        exit
+fi
 if [[ x"$2" == x ]]; then
 	echo "Requires second arguement as device partition path, /dev/sdb1 for example"
 	need_help
+	echo "Here is the list of possible usb stick devices on your computer,"
+	echo "use the correct one:"
+	echo "$(for i in $(find /dev/disk/by-id/ |grep usb); do readlink -f $i;done)"
 	exit
 fi
 if [[ ! -e /usr/bin/syslinux ]]; then
