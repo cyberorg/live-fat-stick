@@ -12,6 +12,8 @@ live-fat-stick
 	isopath should be full absolute path of iso image and the device should be 
 	actual partition on the stick like /dev/sdb1, /dev/sdc1,/dev/sdc2...
 
+	The stick partition has to be vfat/fat32 format.
+
 	run live-fat-stick -l to list the possible usb sticks available.
 
 	It is possible to boot multiple iso images from same stick, 
