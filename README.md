@@ -1,5 +1,7 @@
 live-fat-stick
 ==============
+	Create multi boot USB stick with whole iso/s on vfat/fat32 partition
+
 	run this command as root (su -, not sudo)
 		live-fat-stick isopath stickpartition
 	e.g.: 
