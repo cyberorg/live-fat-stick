@@ -18,3 +18,7 @@ live-fat-stick
 
 	It is possible to boot multiple iso images from same stick, 
 	should work with all recent openSUSE or Ubuntu live iso images. 
+
+	You are welcome to fork and submit patches for your distro :)
+
+	Have a lot of fun...
