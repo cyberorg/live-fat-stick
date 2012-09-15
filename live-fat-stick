@@ -17,7 +17,7 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 #
 # Authors:      Jigish Gohil <cyberorg@opensuse.org>
-# This script creates bootable openSUSE live usb stick on fat partition
+# This script creates bootable openSUSE or Ubuntu live usb stick on fat partition
 #
 umount_everything () {
 		sync
@@ -30,7 +30,7 @@ clean_up () {
 	if [[ $1 == user_killed ]] ; then
 		echo "aborting and cleaning up"
 		umount_everything
-		exit
+		exit 1
 	else
 		echo "cleaning up"
 		umount_everything
@@ -41,27 +41,38 @@ clean_up () {
 trap "clean_up user_killed" SIGINT SIGTERM
 need_help() {
 	cat <<EOF
-run this command as root
-live-fat-stick isopath stickpartition
-e.g.: live-fat-stick /home/geeko/openSUSE-Edu-li-f-e-12.2-1-i686.iso /dev/sdbX
-     isopath should be full absolute path of iso image and the device should be 
-     actual partition on the stick like /dev/sdb1, /dev/sdc1,/dev/sdc2...
-     run live-fat-stick -l to list the possible usb sticks available.
+	run this command as root (su -, not sudo)
+		live-fat-stick isopath stickpartition
+	e.g.: 
+		live-fat-stick /home/geeko/openSUSE-Edu-li-f-e-12.2-1-i686.iso /dev/sdXY
 
-     It is It is possible to boot multiple iso images from same stick, 
-     should work with all recent openSUSE live iso images. 
+	To add Ubuntu iso to the stick, run the following:
+		export distroname=ubuntu
+		live-fat-stick /path/to/ubuntu-filename.iso /dev/sdXY
+
+	isopath should be full absolute path of iso image and the device should be 
+	actual partition on the stick like /dev/sdb1, /dev/sdc1,/dev/sdc2...
+
+	run live-fat-stick -l to list the possible usb sticks available.
+
+	It is possible to boot multiple iso images from same stick, 
+	should work with all recent openSUSE or Ubuntu live iso images. 
 EOF
 }
 
 if [[ x"$USER" != x"root" ]]; then
 	echo "run this command as root"
 	need_help
-	exit
+	exit 1
 fi
 if [[ x"$1" == x ]]; then
 	echo "Requires first arguement as iso image path"
 	need_help
-	exit
+	exit 1
+fi
+if [[ x"$1" == x"-h" ]]; then
+	need_help
+	exit 1
 fi
 if [[ x"$1" == x"-l" ]]; then
         echo "Here is the list of possible usb stick devices on your computer,"
@@ -75,19 +86,24 @@ if [[ x"$2" == x ]]; then
 	echo "Here is the list of possible usb stick devices on your computer,"
 	echo "use the correct one:"
 	echo "$(for i in $(find /dev/disk/by-id/ |grep usb); do readlink -f $i;done)"
-	exit
+	exit 1
 fi
 if [[ ! -e /usr/bin/syslinux ]]; then
 	echo "syslinux not found, please install syslinux package"
-	exit
+	exit 1
 fi
 if [[ ! -e $1 ]]; then
 	echo "File $1 does not exist"
-	exit
+	exit 1
 fi
 if [[ ! -e $2 ]]; then
         echo "Device $2 does not exist"
-        exit
+        exit 1
+fi
+distroname=${distroname:=suse}
+if [[ $distroname != suse ]] && [[ $distroname != ubuntu ]] ; then
+        echo "this distribution's iso is currently not supported, patch welcome"
+        exit 1
 fi
 
 #variables
@@ -101,6 +117,7 @@ stickuuid=$(ls -l /dev/disk/by-uuid/ |grep $stickbase | cut -d " " -f 9)
 stickpart=$(basename $2 | sed 's/[a-z]*//g')
 syslinuxpath=$stickmount/boot/syslinux
 stickdevpart=$2
+
 if echo $isoname | grep -qi "Li-f-e"; then
 	isonameshort=openSUSE-Edu-Li-f-e
 fi
@@ -115,6 +132,31 @@ are_you_sure ()  {
                 esac
         done
 }
+copy_kernel_initrd () {
+	mount $stickdevpart $stickmount &>/dev/null
+	mount $isopath $isomount &>/dev/null
+	echo "copying kernel and initrd from iso image to $stickdevpart"
+	if [[ $distroname == suse ]]; then
+		rm $stickmount/syslinux.cfg &>/dev/null
+		if [[ ! -f $stickmount/fatstick ]]; then
+			cp -r $isomount/boot $stickmount/
+			mv $stickmount/boot/i386/loader $syslinuxpath
+			mv $syslinuxpath/linux $syslinuxpath/linux-$isonameshort
+			mv $syslinuxpath/initrd $syslinuxpath/initrd-$isonameshort
+		fi
+		cp $isomount/boot/*/loader/linux $syslinuxpath/linux-$isonameshort
+		cp $isomount/boot/*/loader/initrd $syslinuxpath/initrd-$isonameshort
+		appendsection="append initrd=initrd-$isonameshort ramdisk_size=512000 ramdisk_blocksize=4096 isofrom=/dev/disk/by-uuid/$stickuuid:/$isoname loader=syslinux splash=silent quiet showopts"
+		isolinux_msg="display isolinux.msg"
+		ui="ui gfxboot bootlogo isolinux.msg"
+	fi
+	if [[ $distroname == ubuntu ]]; then
+		mkdir -p $syslinuxpath
+		cp $isomount/casper/vmlinuz $syslinuxpath/linux-$isonameshort
+		cp $isomount/casper/initrd.lz $syslinuxpath/initrd-$isonameshort
+		appendsection="append initrd=initrd-$isonameshort boot=casper iso-scan/filename=/$isoname"
+	fi
+}
 syslinux_stuff () {
 	echo "installing syslinux on $stickdevpart"
 	syslinux -i $stickdevpart
@@ -122,14 +164,7 @@ syslinux_stuff () {
 	dd if=/usr/share/syslinux/mbr.bin of=$stickdevice &>/dev/null
 	echo "setting $stickdevice partition $stickpart active"
 	parted $stickdevice set $stickpart boot on &>/dev/null
-	mount $stickdevpart $stickmount &>/dev/null
-	mount $isopath $isomount &>/dev/null
-	echo "copying /boot from iso image to $stickdevpart"
-	cp -r $isomount/boot $stickmount/
-	rm $stickmount/syslinux.cfg &>/dev/null
-	mv $stickmount/boot/i386/loader $syslinuxpath
-	mv $syslinuxpath/linux $syslinuxpath/linux-$isonameshort
-	mv $syslinuxpath/initrd $syslinuxpath/initrd-$isonameshort
+	copy_kernel_initrd
 }
 add_harddisk_section () {
 	if ! grep -q localboot $syslinuxpath/syslinux.cfg; then
@@ -140,27 +175,27 @@ label harddisk
 EOF
 	fi
 }
-add_menu_section () {
+add_menu_section_suse () {
 	cat <<EOF >>$syslinuxpath/syslinux.cfg
 
 LABEL $isonameshort
         kernel linux-$isonameshort
-          append initrd=initrd-$isonameshort ramdisk_size=512000 ramdisk_blocksize=4096 isofrom=/dev/disk/by-uuid/$stickuuid:/$isoname loader=syslinux splash=silent quiet showopts 
+        $appendsection 
 
 EOF
 	if echo $isoname | grep -qi "Li-f-e"; then
 	cat <<EOF >>$syslinuxpath/syslinux.cfg
 label install
 	kernel linux-$isonameshort
-	append initrd=initrd-$isonameshort ramdisk_size=512000 ramdisk_blocksize=4096 isofrom=/dev/disk/by-uuid/$stickuuid:/$isoname splash=silent quiet liveinstall loader=syslinux showopts
+	$appendsection liveinstall
 
 label Gnome
 	kernel linux-$isonameshort
-	append initrd=initrd-$isonameshort ramdisk_size=512000 ramdisk_blocksize=4096 isofrom=/dev/disk/by-uuid/$stickuuid:/$isoname splash=silent quiet gnome loader=syslinux showopts
+	$appendsection gnome
 
 label Cinnamon
 	kernel linux-$isonameshort
-	append initrd=initrd-$isonameshort ramdisk_size=512000 ramdisk_blocksize=4096 isofrom=/dev/disk/by-uuid/$stickuuid:/$isoname splash=silent quiet cinnamon loader=syslinux showopts
+	$appendsection cinnamon
 
 label memtest
 	kernel memtest
@@ -170,6 +205,22 @@ EOF
 	add_harddisk_section
 
 }
+add_menu_section_ubuntu () {
+	cat <<EOF >>$syslinuxpath/syslinux.cfg
+label $isonameshort
+	kernel linux-$isonameshort
+	$appendsection
+
+EOF
+}
+add_menu_section () {
+	if [[ $distroname == suse ]]; then
+		add_menu_section_suse
+	fi
+	if [[ $distroname == ubuntu ]]; then
+		add_menu_section_ubuntu
+	fi
+}
 
 echo "Please make sure the following information is correct:"
 echo "iso name: $isoname stick device: $stickdevice"
@@ -178,7 +229,7 @@ are_you_sure "continue ?" "y" "n"
 mkdir $isomount $stickmount &>/dev/null
 if ! mount $2 $stickmount &>/dev/null; then
         echo "unable to mount the usb stick partition"
-        exit
+        exit 1
 fi
 if [[ -e $stickmount/$isoname ]];then
 	isopath=$stickmount/$isoname
@@ -187,14 +238,12 @@ else
 fi
 if ! mount $isopath $isomount &>/dev/null; then
 	echo "unable to mount the iso image"
-	exit
+	exit 1
 fi
 if [[ -f $stickmount/fatstick ]]; then
         echo "the stick is already bootable stick"
 	if ! grep -q $isonameshort $syslinuxpath/syslinux.cfg; then
-		echo "copying kernel and initrd from the $isoname"
-		cp $isomount/boot/*/loader/linux $syslinuxpath/linux-$isonameshort
-		cp $isomount/boot/*/loader/initrd $syslinuxpath/initrd-$isonameshort
+		copy_kernel_initrd
 		echo "adding new image to boot menu"
 		add_menu_section
 	fi
@@ -208,8 +257,8 @@ else
 implicit 1
 prompt   1
 timeout  100
-display isolinux.msg
-ui gfxboot bootlogo isolinux.msg
+$isolinux_msg
+$ui
 default $isonameshort
 
 EOF
