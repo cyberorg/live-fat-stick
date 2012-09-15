@@ -24,6 +24,7 @@ umount_everything () {
                 umount $isomount &>/dev/null             
                 umount $stickmount && rm -rf $stickmount
                 umount $stickdevpart &>/dev/null
+		rm -rf $isomount &>/dev/null
 }
 clean_up () {
 	if [[ $1 == user_killed ]] ; then
