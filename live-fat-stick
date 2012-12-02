@@ -142,7 +142,7 @@ copy_kernel_initrd () {
 		rm $stickmount/syslinux.cfg &>/dev/null
 		if [[ ! -f $stickmount/fatstick ]]; then
 			cp -r $isomount/boot $stickmount/
-			mv $stickmount/boot/i386/loader $syslinuxpath
+			mv $stickmount/boot/*/loader $syslinuxpath
 			mv $syslinuxpath/linux $syslinuxpath/linux-$isonameshort
 			mv $syslinuxpath/initrd $syslinuxpath/initrd-$isonameshort
 		fi
