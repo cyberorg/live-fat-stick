@@ -19,7 +19,8 @@ live-fat-stick
 	run live-fat-stick -l to list the possible usb sticks available.
 
 	It is possible to boot multiple iso images from same stick, 
-	should work with all recent openSUSE or Ubuntu live iso images. 
+	should work with all recent openSUSE or Ubuntu(also derivatives like Mint etc.) 
+	live iso images. 
 
 	You are welcome to fork and submit patches for your distro :)
 
