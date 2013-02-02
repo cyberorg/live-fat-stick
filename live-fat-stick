@@ -119,6 +119,12 @@ stickuuid=$(ls -l /dev/disk/by-uuid/ |grep $stickbase | cut -d " " -f 9)
 stickpart=$(basename $2 | sed 's/[a-z]*//g')
 syslinuxpath=$stickmount/boot/syslinux
 stickdevpart=$2
+if [[ ! -h $stickuuid ]]; then
+        stickuuid=$(ls -l /dev/disk/by-uuid/ |grep $stickbase | cut -d " " -f 10)
+fi
+if [[ ! -h $stickuuid ]]; then
+        echo "wrong uuid detected, please file bug with output of: ls -l /dev/disk/by-uuid/ |grep $stickbase"
+fi
 
 if echo $isoname | grep -qi "Li-f-e"; then
 	isonameshort=openSUSE-Edu-Li-f-e
