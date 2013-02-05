@@ -109,7 +109,7 @@ if [[ ! -e $2 ]]; then
         exit 1
 fi
 distroname=${distroname:=suse}
-if [[ $distroname != suse ]] && [[ $distroname != ubuntu ]] && [[ $distroname != ubuntu ]]; then
+if [[ $distroname != suse ]] && [[ $distroname != ubuntu ]] && [[ $distroname != fedora ]]; then
         echo "this distribution's iso is currently not supported, patch welcome"
         exit 1
 fi
