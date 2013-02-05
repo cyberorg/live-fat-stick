@@ -22,9 +22,10 @@
 umount_everything () {
 		sync
                 umount $isomount &>/dev/null             
-                umount $stickmount && rm -rf $stickmount
+                umount $stickmount &>/dev/null 
                 umount $stickdevpart &>/dev/null
 		rm -rf $isomount &>/dev/null
+                mount | grep $stickmount || rm -rf $stickmount &>/dev/null
 }
 clean_up () {
 	if [[ $1 == user_killed ]] ; then
