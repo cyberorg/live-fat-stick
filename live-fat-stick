@@ -175,7 +175,7 @@ copy_kernel_initrd () {
 		cp -r $isomount/* /$stickmount/$isonameshort/
 		mv $stickmount/$isonameshort/isolinux/initrd0.img $syslinuxpath/initrd-$isonameshort
 		mv $stickmount/$isonameshort/isolinux/vmlinuz0 $syslinuxpath/linux-$isonameshort
-		appendsection="linux /$isonameshort/linux-$isonameshort root=UUID=$stickuuid rootfstype=vfat live_dir=/$isonameshort/ ro liveimg systemd.unit=graphical.target"
+		appendsection="linux linux-$isonameshort root=UUID=$stickuuid rootfstype=vfat live_dir=/$isonameshort/ ro liveimg systemd.unit=graphical.target"
 	fi
 }
 syslinux_stuff () {
