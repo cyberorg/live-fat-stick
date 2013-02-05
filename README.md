@@ -11,6 +11,10 @@ live-fat-stick
 		export distroname=ubuntu
 		live-fat-stick /path/to/ubuntu-filename.iso /dev/sdXY
 
+        To add Fedora to the stick, run the following:
+                export distroname=fedora
+                live-fat-stick /path/to/fedora-filename.iso /dev/sdXY
+
 	isopath should be full absolute path of iso image and the device should be 
 	actual partition on the stick like /dev/sdb1, /dev/sdc1,/dev/sdc2...
 
@@ -18,9 +22,9 @@ live-fat-stick
 
 	run live-fat-stick -l to list the possible usb sticks available.
 
-	It is possible to boot multiple iso images from same stick, 
-	should work with all recent openSUSE or Ubuntu(also derivatives like Mint etc.) 
-	live iso images. 
+        It is possible to boot multiple distributions and iso images from same stick, 
+        should work with all recent openSUSE or Ubuntu live iso images. Fedora iso is
+        not copied as is but need extracting as it does not support booting from iso.
 
 	You are welcome to fork and submit patches for your distro :)
 
