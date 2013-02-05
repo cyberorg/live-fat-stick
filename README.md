@@ -22,9 +22,10 @@ live-fat-stick
 
 	run live-fat-stick -l to list the possible usb sticks available.
 
-        It is possible to boot multiple distributions and iso images from same stick, 
-        should work with all recent openSUSE or Ubuntu live iso images. Fedora iso is
-        not copied as is but need extracting as it does not support booting from iso.
+        It is possible to boot multiple distributions and iso images from same stick.
+	Supports openSUSE, Ubuntu, Fedora and their derivatives(clones/similar) 
+	live distributions. Fedora iso is not copied to the stick but is extracted as 
+	it does not support booting from iso.
 
 	You are welcome to fork and submit patches for your distro :)
 

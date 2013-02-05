@@ -126,9 +126,6 @@ stickuuid=$(blkid $2 | sed 's@ @\n@g' |tr '"' ' ' |grep UUID | cut -d " " -f 2)
 stickpart=$(basename $2 | sed 's/[a-z]*//g')
 syslinuxpath=$stickmount/boot/syslinux
 stickdevpart=$2
-#if [[ ! -h /dev/disk/by-uuid/$stickuuid ]]; then
-#        stickuuid=$(ls -l /dev/disk/by-uuid/ |grep $stickbase | cut -d " " -f 10)
-#fi
 if [[ ! -h /dev/disk/by-uuid/$stickuuid ]]; then
         echo "wrong uuid detected, please file bug with output of: blkid $2"
 fi
