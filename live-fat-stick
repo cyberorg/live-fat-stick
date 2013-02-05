@@ -17,7 +17,7 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 #
 # Authors:      Jigish Gohil <cyberorg@opensuse.org>
-# This script creates bootable openSUSE or Ubuntu live usb stick on fat partition
+# This script creates bootable openSUSE, Fedora or Ubuntu(or clones) live usb stick on fat partition
 #
 umount_everything () {
 		sync
@@ -50,6 +50,10 @@ need_help() {
 		export distroname=ubuntu
 		live-fat-stick /path/to/ubuntu-filename.iso /dev/sdXY
 
+	To add Fedora to the stick, run the following:
+		export distroname=fedora
+		live-fat-stick /path/to/fedora-filename.iso /dev/sdXY
+
 	isopath should be full absolute path of iso image and the device should be 
 	actual partition on the stick like /dev/sdb1, /dev/sdc1,/dev/sdc2...
 
@@ -57,8 +61,10 @@ need_help() {
 
 	run live-fat-stick -l to list the possible usb sticks available.
 
-	It is possible to boot multiple iso images from same stick, 
-	should work with all recent openSUSE or Ubuntu live iso images. 
+	It is possible to boot multiple distributions and iso images from same stick, 
+	should work with all recent openSUSE or Ubuntu live iso images. Fedora iso is
+	not copied as is but need extracting as it does not support booting from iso.
+
 EOF
 }
 
@@ -103,7 +109,7 @@ if [[ ! -e $2 ]]; then
         exit 1
 fi
 distroname=${distroname:=suse}
-if [[ $distroname != suse ]] && [[ $distroname != ubuntu ]] ; then
+if [[ $distroname != suse ]] && [[ $distroname != ubuntu ]] && [[ $distroname != ubuntu ]]; then
         echo "this distribution's iso is currently not supported, patch welcome"
         exit 1
 fi
@@ -115,15 +121,16 @@ stickdevice=$(echo $2 | sed 's/[0-9]*//g')
 stickbase=$(basename $2)
 isoname=$(basename $1)
 isonameshort=$(echo $isoname | cut -d "-" -f 1,2,3)
-stickuuid=$(ls -l /dev/disk/by-uuid/ |grep $stickbase | cut -d " " -f 9)
+#stickuuid=$(ls -l /dev/disk/by-uuid/ |grep $stickbase | cut -d " " -f 9)
+stickuuid=$(blkid $2 | sed 's@ @\n@g' |tr '"' ' ' |grep UUID | cut -d " " -f 2)
 stickpart=$(basename $2 | sed 's/[a-z]*//g')
 syslinuxpath=$stickmount/boot/syslinux
 stickdevpart=$2
-if [[ ! -h $stickuuid ]]; then
-        stickuuid=$(ls -l /dev/disk/by-uuid/ |grep $stickbase | cut -d " " -f 10)
-fi
-if [[ ! -h $stickuuid ]]; then
-        echo "wrong uuid detected, please file bug with output of: ls -l /dev/disk/by-uuid/ |grep $stickbase"
+#if [[ ! -h /dev/disk/by-uuid/$stickuuid ]]; then
+#        stickuuid=$(ls -l /dev/disk/by-uuid/ |grep $stickbase | cut -d " " -f 10)
+#fi
+if [[ ! -h /dev/disk/by-uuid/$stickuuid ]]; then
+        echo "wrong uuid detected, please file bug with output of: blkid $2"
 fi
 
 if echo $isoname | grep -qi "Li-f-e"; then
@@ -163,6 +170,15 @@ copy_kernel_initrd () {
 		cp $isomount/casper/vmlinuz $syslinuxpath/linux-$isonameshort
 		cp $isomount/casper/initrd.lz $syslinuxpath/initrd-$isonameshort
 		appendsection="append initrd=initrd-$isonameshort boot=casper iso-scan/filename=/$isoname"
+	fi
+	if [[ $distroname == fedora ]]; then
+		mkdir -p $syslinuxpath
+		mkdir -p $stickmount/$isonameshort
+		echo "copying the content of iso image, this may take a while"
+		cp -r $isomount/* /$stickmount/$isonameshort/
+		mv $stickmount/$isonameshort/isolinux/initrd0.img $syslinuxpath/initrd-$isonameshort
+		mv $stickmount/$isonameshort/isolinux/vmlinuz0 $syslinuxpath/linux-$isonameshort
+		appendsection="linux /$isonameshort/linux-$isonameshort root=UUID=$stickuuid rootfstype=vfat live_dir=/$isonameshort/ ro liveimg systemd.unit=graphical.target"
 	fi
 }
 syslinux_stuff () {
@@ -221,12 +237,24 @@ label $isonameshort
 
 EOF
 }
+add_menu_section_fedora () {
+	cat <<EOF >>$syslinuxpath/syslinux.cfg
+label $isonameshort
+	$appendsection
+	initrd initrd-$isonameshort
+
+EOF
+}
+
 add_menu_section () {
 	if [[ $distroname == suse ]]; then
 		add_menu_section_suse
 	fi
 	if [[ $distroname == ubuntu ]]; then
 		add_menu_section_ubuntu
+	fi
+	if [[ $distroname == fedora ]]; then
+		add_menu_section_fedora
 	fi
 }
 
