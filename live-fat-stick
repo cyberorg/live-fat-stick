@@ -25,7 +25,7 @@ umount_everything () {
                 umount $stickmount &>/dev/null 
                 umount $stickdevpart &>/dev/null
 		rm -rf $isomount &>/dev/null
-                mount | grep $stickmount || rm -rf $stickmount &>/dev/null
+                mount | grep $stickmount &>/dev/null || umount $stickmount &>/dev/null && rm -rf $stickmount &>/dev/null
 }
 clean_up () {
 	if [[ $1 == user_killed ]] ; then
@@ -176,7 +176,7 @@ copy_kernel_initrd () {
 		cp -r $isomount/* /$stickmount/$isonameshort/
 		mv $stickmount/$isonameshort/isolinux/initrd0.img $syslinuxpath/initrd-$isonameshort
 		mv $stickmount/$isonameshort/isolinux/vmlinuz0 $syslinuxpath/linux-$isonameshort
-		appendsection="linux linux-$isonameshort root=UUID=$stickuuid rootfstype=vfat live_dir=/$isonameshort/ ro liveimg systemd.unit=graphical.target"
+		appendsection="append initrd=initrd-$isonameshort root=UUID=$stickuuid rootfstype=vfat rd.live.dir=/$isonameshort/LiveOS/ ro rd.live.image rd.luks=0 rd.md=0 rd.dm=0 quiet rhgb"
 	fi
 }
 syslinux_stuff () {
@@ -238,8 +238,8 @@ EOF
 add_menu_section_fedora () {
 	cat <<EOF >>$syslinuxpath/syslinux.cfg
 label $isonameshort
+	kernel linux-$isonameshort
 	$appendsection
-	initrd initrd-$isonameshort
 
 EOF
 }
@@ -257,7 +257,7 @@ add_menu_section () {
 }
 
 echo "Please make sure the following information is correct:"
-echo "iso name: $isoname stick device: $stickdevice"
+echo "iso name: $isoname distro: $distroname stick device: $stickdevice"
 echo "stick uuid: /dev/disk/by-uuid/$stickuuid stick partition: $stickpart"
 are_you_sure "continue ?" "y" "n"
 mkdir $isomount $stickmount &>/dev/null
@@ -299,11 +299,13 @@ EOF
 	add_menu_section
 fi
 touch $stickmount/fatstick
-if [[ ! -f $stickmount/$isoname ]]; then
-	echo "copying $isoname to usb stick"
-	cp $1 $stickmount/
-else
-	echo "using existing $isoname on the stick"
+if [[ x$distroname != xfedora ]]; then
+	if [[ ! -f $stickmount/$isoname ]]; then
+		echo "copying $isoname to usb stick"
+		cp $1 $stickmount/
+	else
+		echo "using existing $isoname on the stick"
+	fi
 fi
 clean_up
 
