@@ -318,15 +318,7 @@ else
 	umount $isopath &>/dev/null || true
 	syslinux_stuff
 	echo "creating menu entries"
-	cat <<EOF >$syslinuxpath/syslinux.cfg
-implicit 1
-prompt   1
-timeout  100
-$isolinux_msg
-$ui
-default $isonameshort
-
-EOF
+	create_syslinux_cfg
 	add_menu_section
 fi
 touch $stickmount/fatstick
