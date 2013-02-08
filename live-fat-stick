@@ -25,7 +25,8 @@ umount_everything () {
                 umount $stickmount &>/dev/null 
                 umount $stickdevpart &>/dev/null
 		rm -rf $isomount &>/dev/null
-                mount | grep $stickmount &>/dev/null || umount $stickmount &>/dev/null && rm -rf $stickmount &>/dev/null
+                mount | grep $stickmount &>/dev/null || umount $stickmount &>/dev/null 
+		rmdir $stickmount &>/dev/null || echo "unable to remove $stickmount, please remove manually"
 }
 clean_up () {
 	if [[ $1 == user_killed ]] ; then
@@ -47,53 +48,69 @@ need_help() {
 	e.g.: 
 		live-fat-stick /home/geeko/openSUSE-Edu-li-f-e-12.2-1-i686.iso /dev/sdXY
 
-	To add Ubuntu iso to the stick, run the following:
-		export distroname=ubuntu
-		live-fat-stick /path/to/ubuntu-filename.iso /dev/sdXY
-
-	To add Fedora to the stick, run the following:
-		export distroname=fedora
-		live-fat-stick /path/to/fedora-filename.iso /dev/sdXY
+	To add various distribution iso to the stick, run the following:
+		For openSUSE	: live-fat-stick --suse /path/to/openSUSE-filename.iso /dev/sdXY
+		For Ubuntu	: live-fat-stick --ubuntu /path/to/ubuntu-filename.iso /dev/sdXY
+		For Mint	: live-fat-stick --mint /path/to/mint-filename.iso /dev/sdXY
+		For Fedora	: live-fat-stick --fedora /path/to/fedora-filename.iso /dev/sdXY
 
 	isopath should be full absolute path of iso image and the device should be 
 	actual partition on the stick like /dev/sdb1, /dev/sdc1,/dev/sdc2...
 
 	The stick partition has to be vfat/fat32 format.
 
-	run live-fat-stick -l to list the possible usb sticks available.
+	run live-fat-stick -l(or --list) to list the possible usb storage devices available.
 
-	It is possible to boot multiple distributions and iso images from same stick, 
+	It is possible to boot multiple distributions and iso images from same device, 
 	should work with all recent openSUSE or Ubuntu live iso images. Fedora iso is
-	not copied as is but need extracting as it does not support booting from iso.
+	not copied but is extracted as it does not support booting from iso.
 
 EOF
 }
-
 if [[ x"$USER" != x"root" ]]; then
 	echo "run this command as root"
 	need_help
 	exit 1
+fi
+while [ $# -gt 2 ]; do
+        case $1 in
+                --fedora)
+                distroname=fedora
+                ;;
+                --suse|--opensuse)
+                distroname=suse
+                ;;
+                --ubuntu|--mint)
+                distroname=ubuntu
+                ;;
+                *)
+                echo "invalid arg -- $1"
+		need_help
+                exit 1
+                ;;
+        esac
+        shift
+done
+if [ "$1" == "-h" -o "$1" == "--help" ]; then
+        need_help
+        exit
+fi
+if [ "$1" == "-l" -o "$1" == "--list" ]; then
+        echo "Here is the list of possible usb storage devices on your computer,"
+        echo "use the correct one, usually the one with a number at the end:"
+        echo "$(for i in $(find /dev/disk/by-id/ |grep usb); do readlink -f $i;done)"
+        exit
 fi
 if [[ x"$1" == x ]]; then
 	echo "Requires first arguement as iso image path"
 	need_help
 	exit 1
 fi
-if [[ x"$1" == x"-h" ]]; then
-	need_help
-	exit 1
-fi
-if [[ x"$1" == x"-l" ]]; then
-        echo "Here is the list of possible usb stick devices on your computer,"
-        echo "use the correct one:"
-        echo "$(for i in $(find /dev/disk/by-id/ |grep usb); do readlink -f $i;done)"
-        exit
-fi
 if [[ x"$2" == x ]]; then
 	echo "Requires second arguement as device partition path, /dev/sdb1 for example"
 	need_help
-	echo "Here is the list of possible usb stick devices on your computer,"
-	echo "use the correct one:"
+	echo "Here is the list of possible usb storage devices on your computer,"
+	echo "use the correct one, usually the one with a number at the end:"
 	echo "$(for i in $(find /dev/disk/by-id/ |grep usb); do readlink -f $i;done)"
 	exit 1
 fi
@@ -123,7 +140,7 @@ stickbase=$(basename $2)
 isoname=$(basename $1)
 isonameshort=$(echo $isoname | cut -d "-" -f 1,2,3)
 #stickuuid=$(ls -l /dev/disk/by-uuid/ |grep $stickbase | cut -d " " -f 9)
-stickuuid=$(blkid $2 | sed 's@ @\n@g' |tr '"' ' ' |grep UUID | cut -d " " -f 2)
+stickuuid=$(blkid -s UUID -o value $2)
 stickpart=$(basename $2 | sed 's/[a-z]*//g')
 syslinuxpath=$stickmount/boot/syslinux
 stickdevpart=$2
@@ -144,6 +161,17 @@ are_you_sure ()  {
                         *) echo "Please answer yes or no.";;
                 esac
         done
+}
+try_cp_with_progress () {
+	if [ -x /usr/bin/rsync ]; then
+        	rsync --inplace -aP "$1" "$2"
+        	return
+	fi
+        if [[ $distroname == fedora ]]; then
+		cp -r "$1/*" "$2"
+	else
+		cp -r "$1" "$2"
+	fi
 }
 copy_kernel_initrd () {
 	mount $stickdevpart $stickmount &>/dev/null
@@ -173,7 +201,7 @@ copy_kernel_initrd () {
 		mkdir -p $syslinuxpath
 		mkdir -p $stickmount/$isonameshort
 		echo "copying the content of iso image, this may take a while"
-		cp -r $isomount/* /$stickmount/$isonameshort/
+		try_cp_with_progress $isomount/ /$stickmount/$isonameshort/
 		mv $stickmount/$isonameshort/isolinux/initrd0.img $syslinuxpath/initrd-$isonameshort
 		mv $stickmount/$isonameshort/isolinux/vmlinuz0 $syslinuxpath/linux-$isonameshort
 		appendsection="append initrd=initrd-$isonameshort root=UUID=$stickuuid rootfstype=vfat rd.live.dir=/$isonameshort/LiveOS/ ro rd.live.image rd.luks=0 rd.md=0 rd.dm=0 quiet rhgb"
@@ -198,13 +226,6 @@ EOF
 	fi
 }
 add_menu_section_suse () {
-	cat <<EOF >>$syslinuxpath/syslinux.cfg
-
-LABEL $isonameshort
-        kernel linux-$isonameshort
-        $appendsection 
-
-EOF
 	if echo $isoname | grep -qi "Li-f-e"; then
 	cat <<EOF >>$syslinuxpath/syslinux.cfg
 label install
@@ -227,32 +248,16 @@ EOF
 	add_harddisk_section
 
 }
-add_menu_section_ubuntu () {
-	cat <<EOF >>$syslinuxpath/syslinux.cfg
-label $isonameshort
-	kernel linux-$isonameshort
-	$appendsection
-
-EOF
-}
-add_menu_section_fedora () {
-	cat <<EOF >>$syslinuxpath/syslinux.cfg
-label $isonameshort
-	kernel linux-$isonameshort
-	$appendsection
-
-EOF
-}
-
 add_menu_section () {
+        cat <<EOF >>$syslinuxpath/syslinux.cfg
+
+LABEL $isonameshort
+        kernel linux-$isonameshort
+        $appendsection 
+
+EOF
 	if [[ $distroname == suse ]]; then
 		add_menu_section_suse
-	fi
-	if [[ $distroname == ubuntu ]]; then
-		add_menu_section_ubuntu
-	fi
-	if [[ $distroname == fedora ]]; then
-		add_menu_section_fedora
 	fi
 }
 
@@ -299,10 +304,10 @@ EOF
 	add_menu_section
 fi
 touch $stickmount/fatstick
-if [[ x$distroname != xfedora ]]; then
+if [[ $distroname != fedora ]]; then
 	if [[ ! -f $stickmount/$isoname ]]; then
 		echo "copying $isoname to usb stick"
-		cp $1 $stickmount/
+		try_cp_with_progress $1 $stickmount/
 	else
 		echo "using existing $isoname on the stick"
 	fi
