@@ -248,6 +248,32 @@ EOF
 	add_harddisk_section
 
 }
+create_syslinux_cfg() {
+        if [[ $distroname == suse ]]; then
+        	cat <<EOF >$syslinuxpath/syslinux.cfg
+implicit 1
+prompt   1
+timeout  100
+$isolinux_msg
+$ui
+default $isonameshort
+
+EOF
+	else
+		cp /usr/share/syslinux/vesamenu.c32 $syslinuxpath/ || echo "/usr/share/syslinux/vesamenu.c32 is missing or cannot be copied"
+                cat <<EOF >$syslinuxpath/syslinux.cfg
+default vesamenu.c32
+ONTIMEOUT $isonameshort
+ALLOWOPTIONS 0
+PROMPT 0
+IMPLICIT 1
+OPTIONS 1
+TIMEOUT 100
+
+EOF
+
+	fi
+}
 add_menu_section () {
         cat <<EOF >>$syslinuxpath/syslinux.cfg
 
