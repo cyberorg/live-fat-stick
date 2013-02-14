@@ -1,0 +1,95 @@
+#!/bin/bash
+# live-usb-gui : Simple GUI to create bootable usb stick from iso images
+# Copyright (c) 2012 CyberOrg Info
+# This program is free software; you can redistribute it and/or modify it under
+# the terms of the GNU General Public License as published by the Free Software
+# Foundation; either version 2 of the License, or (at your option) any later
+# version.
+#
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+# details.
+#
+# You should have received a copy of the GNU General Public License along with
+# this program; if not, write to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+#
+# Authors:      Jigish Gohil <cyberorg@opensuse.org>
+# This script creates bootable openSUSE, Fedora or Ubuntu(or clones) live usb stick on fat partition
+#
+PATH=$PATH:/sbin:/usr/sbin:/usr/local/sbin:/usr/local/bin:/usr/bin:/bin
+if [[ $(id -u) != 0 ]]; then
+        echo "run this command as root"
+fi
+which zenity || echo "zenity not found, please install to use this tool"
+which live-fat-stick || echo "live-fat-stick script not found in PATH, please install it and make it executable"
+
+
+export livestickgui=$(mktemp)
+clean_up () {
+	rm $livestickgui
+}
+sourceiso=$(zenity --file-selection --title="Select distribution iso file" --file-filter=*iso)
+if [ ! "$sourceiso" ]; then
+	clean_up
+	exit 1
+fi
+
+usbdevice=$(zenity --list \
+	--title="Select the target USB device" \
+	--column="USB device" \
+	$(for i in `echo $(for i in $(find /dev/disk/by-id/ |grep usb); do readlink -f $i;done)`
+		do
+			if [[ $(blkid -s TYPE -o value $i) == vfat ]];then
+			echo $i
+			fi
+		done
+	)
+)
+if [ ! "$usbdevice" ]; then
+        clean_up
+	exit 1
+fi
+
+distroname=$(zenity --list \
+	--title="Select the distribution of the iso" \
+	--column="Distribution" \
+	suse \
+	fedora \
+	mint \
+	ubuntu)
+
+case $distroname in
+	fedora)
+	option="--fedora"
+	;;
+	suse)
+	option="--suse"
+	;;
+	ubuntu)
+	option="--ubuntu"
+	;;
+	mint)
+	option="--ubuntu"
+	;;
+esac
+
+if [ ! "$option" ]; then
+        clean_up
+	exit 1
+fi
+if ! zenity --question --title="Is information below correct?" --text "Distribution: $distroname \nISO image: $sourceiso \nUSB device: $usbdevice"; then
+        clean_up
+        exit 1
+fi
+
+live-fat-stick $option $sourceiso $usbdevice
+
+if [ $? != 0 ]; then
+	zenity --error --text="oops, something went wrong!"
+else
+	zenity --info --text="Your bootable usb stick is now ready"
+fi
+clean_up
+

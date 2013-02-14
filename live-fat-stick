@@ -19,13 +19,17 @@
 # Authors:      Jigish Gohil <cyberorg@opensuse.org>
 # This script creates bootable openSUSE, Fedora or Ubuntu(or clones) live usb stick on fat partition
 #
+PATH=$PATH:/sbin:/usr/sbin:/usr/local/sbin:/usr/local/bin:/usr/bin:/bin
 umount_everything () {
 		sync
                 umount $isomount &>/dev/null             
-                umount $stickmount &>/dev/null 
                 umount $stickdevpart &>/dev/null
 		rm -rf $isomount &>/dev/null
-                mount | grep $stickmount &>/dev/null || umount $stickmount &>/dev/null 
+                umount $stickmount &>/dev/null
+		while $(mount | grep $stickmount &>/dev/null); do
+			umount $stickdevpart &>/dev/null
+			sleep 2
+		done
 		rmdir $stickmount &>/dev/null || echo "unable to remove $stickmount, please remove manually"
 }
 clean_up () {
@@ -67,7 +71,7 @@ need_help() {
 
 EOF
 }
-if [[ x"$USER" != x"root" ]]; then
+if [[ $(id -u) != 0 ]]; then
 	echo "run this command as root"
 	need_help
 	exit 1
@@ -164,7 +168,7 @@ are_you_sure ()  {
 }
 try_cp_with_progress () {
 	if [ -x /usr/bin/rsync ]; then
-        	rsync --inplace -aP "$1" "$2"
+        	rsync --inplace -aP "$1" "$2" 2>/dev/null
         	return
 	fi
         if [[ $distroname == fedora ]]; then
@@ -290,7 +294,9 @@ EOF
 echo "Please make sure the following information is correct:"
 echo "iso name: $isoname distro: $distroname stick device: $stickdevice"
 echo "stick uuid: /dev/disk/by-uuid/$stickuuid stick partition: $stickpart"
-are_you_sure "continue ?" "y" "n"
+if [ ! -f $livestickgui ]; then
+	are_you_sure "continue ?" "y" "n"
+fi
 mkdir $isomount $stickmount &>/dev/null
 if ! mount $2 $stickmount &>/dev/null; then
         echo "unable to mount the usb stick partition"
