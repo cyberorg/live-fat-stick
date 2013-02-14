@@ -336,5 +336,7 @@ if [[ $distroname != fedora ]]; then
 		echo "using existing $isoname on the stick"
 	fi
 fi
+thisscript=$(readlink -f $0)
+cp $thisscript $stickmount/ &>/dev/null || true
 clean_up
 
