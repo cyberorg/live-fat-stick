@@ -3,7 +3,9 @@ live-fat-stick
 	Create multi boot USB stick/hard disk with whole iso/s on vfat/fat32 partition
 	keeping existing data untouched.
 
-	run this command as root (su -, not sudo)
+	Copy live-fat-stick to /usr/bin/ and chmod +x /usr/bin/live-fat-stick
+
+	Run this command as root (su -, not sudo)
 		live-fat-stick isopath stickpartition
 	e.g.: 
 		live-fat-stick /home/geeko/openSUSE-Edu-li-f-e-12.2-1-i686.iso /dev/sdXY
@@ -19,13 +21,17 @@ live-fat-stick
 
 	The stick partition has to be vfat/fat32 format.
 
-	run live-fat-stick -l(or --list) to list the possible usb storage devices available.
+	Run live-fat-stick -l(or --list) to list the possible usb storage devices available.
 
 live-usb-gui
 ==============
 	Simple zenity based GUI that runs live-fat-stick script
 
-	run this command without any options as root from terminal (su -, not sudo) or
+	Copy live-usb-gui to /usr/bin/ and chmod +x /usr/bin/live-usb-gui
+	Copy live-usb-gui.desktop to /usr/share/applications/ and update-desktop-database -q
+	this should make Live USB GUI show up in desktop menu. 
+
+	Run this command without any options as root from terminal (su -, not sudo) or
 	Alt+F2 and xdg-su -c "xterm -e live-usb-gui"
 
 
