@@ -22,8 +22,8 @@ PATH=$PATH:/sbin:/usr/sbin:/usr/local/sbin:/usr/local/bin:/usr/bin:/bin
 if [[ $(id -u) != 0 ]]; then
         echo "run this command as root"
 fi
-which zenity || echo "zenity not found, please install to use this tool"
-which live-fat-stick || echo "live-fat-stick script not found in PATH, please install it and make it executable"
+which zenity &>/dev/null || echo "zenity not found, please install to use this tool"
+which live-fat-stick &>/dev/null || echo "live-fat-stick script not found in PATH, please install it and make it executable"
 
 
 export livestickgui=$(mktemp)
