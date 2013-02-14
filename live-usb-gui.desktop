@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Categories=System;Utility;
+X-KDE-RootOnly=true
+Exec=xdg-su -c "live-usb-gui"
+Icon=drive-removable-media
+Name=Live USB creator
+GenericName=USB key writer 
+X-KDE-SubstituteUID=true
+Version=1.0
+
