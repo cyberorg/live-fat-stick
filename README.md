@@ -23,6 +23,9 @@ live-fat-stick
 
 	Run live-fat-stick -l(or --list) to list the possible usb storage devices available.
 
+	openSUSE users can install it via 1-click from here:
+	http://software.opensuse.org/package/live-fat-stick
+
 live-usb-gui
 ==============
 	Simple zenity based GUI that runs live-fat-stick script
@@ -33,6 +36,9 @@ live-usb-gui
 
 	Run this command without any options as root from terminal (su -, not sudo) or
 	Alt+F2 and xdg-su -c "xterm -e live-usb-gui"
+
+	openSUSE users can install it via 1-click from here:
+	http://software.opensuse.org/package/live-usb-gui
 
 
 
