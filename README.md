@@ -21,11 +21,20 @@ live-fat-stick
 
 	run live-fat-stick -l(or --list) to list the possible usb storage devices available.
 
-	It is possible to boot multiple distributions and iso images from same device, 
-	should work with all recent openSUSE or Ubuntu live iso images. Fedora iso is
-	not copied but is extracted as it does not support booting from iso.
+live-usb-gui
+==============
+	Simple zenity based GUI that runs live-fat-stick script
 
-	You are welcome to fork and submit patches for your distro if it is not supported by 
-	this script :)
+	run this command without any options as root from terminal (su -, not sudo) or
+	Alt+F2 and xdg-su -c "xterm -e live-usb-gui"
 
-	Have a lot of fun...
+
+
+It is possible to boot multiple distributions and iso images from same device, 
+should work with all recent openSUSE or Ubuntu live iso images. Fedora iso is
+not copied but is extracted as it does not support booting from iso.
+
+You are welcome to fork and submit patches for your distro if it is not supported by 
+this script :)
+
+Have a lot of fun...
