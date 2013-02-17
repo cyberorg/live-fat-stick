@@ -18,47 +18,69 @@
 # Authors:      Jigish Gohil <cyberorg@opensuse.org>
 # This script creates bootable openSUSE, Fedora or Ubuntu(or clones) live usb stick on fat partition
 #
-PATH=$PATH:/sbin:/usr/sbin:/usr/local/sbin:/usr/local/bin:/usr/bin:/bin
 if [[ $(id -u) != 0 ]]; then
         echo "run this command as root"
+	exit 1
 fi
-which zenity &>/dev/null || echo "zenity not found, please install to use this tool"
+PATH=$PATH:/sbin:/usr/sbin:/usr/local/sbin:/usr/local/bin:/usr/bin:/bin
+if [ x"$WINDOWMANAGER" = x"/usr/bin/startkde" ]; then
+	which kdialog &>/dev/null && popup=kdialog
+else
+	which zenity &>/dev/null && popup=zenity
+fi
+popup=${popup:-zenity}
+
+which $popup &>/dev/null || echo "$popup not found, please install to use this tool"
 which live-fat-stick &>/dev/null || echo "live-fat-stick script not found in PATH, please install it and make it executable"
 
-
 export livestickgui=$(mktemp)
+
 clean_up () {
 	rm $livestickgui
 }
-sourceiso=$(zenity --file-selection --title="Select distribution iso file" --file-filter=*iso)
-if [ ! "$sourceiso" ]; then
-	clean_up
-	exit 1
-fi
 
-usbdevice=$(zenity --list \
-	--title="Select the target USB device" \
-	--column="USB device" \
-	$(for i in `echo $(for i in $(find /dev/disk/by-id/ |grep usb); do readlink -f $i;done)`
-		do
-			if [[ $(blkid -s TYPE -o value $i) == vfat ]];then
-			echo $i
-			fi
-		done
-	)
-)
-if [ ! "$usbdevice" ]; then
-        clean_up
-	exit 1
-fi
+fileselecttitle="Select distribution iso file"
+fileselectpath="/"
+fileselectfilter="*iso"
+usbselecttitle="Select the target USB device"
+distributionlist="suse fedora mint ubuntu"
+distrotitle="Select the distribution of the iso"
+usbdevicelist=$(for i in `echo $(for i in $(find /dev/disk/by-id/ |grep usb); do readlink -f $i;done)`
+	do
+        	if [[ $(blkid -s TYPE -o value $i) == vfat ]];then
+        		echo $i
+                fi
+done)
+usbdevicelistkd=$(for device in $usbdevicelist; do
+	printf "%s %s %s" ${device} ${device} off 
+	printf "\n"
+done)
 
-distroname=$(zenity --list \
-	--title="Select the distribution of the iso" \
-	--column="Distribution" \
-	suse \
-	fedora \
-	mint \
-	ubuntu)
+distributionlistkd=$(for distro in $distributionlist; do
+	printf "%s %s %s" $distro $distro off
+	printf "\n"    
+done)
+check_variable () {
+	if [ ! "$1" ]; then
+		clean_up
+		exit 1
+	fi
+}
+if [[ $popup == zenity ]]; then
+	sourceiso=$(zenity --file-selection --title="$fileselecttitle" --file-filter="$fileselectfilter")
+	check_variable $sourceiso
+	usbdevice=$(zenity --list --title="$usbselecttitle" --column="USB device" $usbdevicelist)
+	check_variable $usbdevice
+	distroname=$(zenity --list --title="distrotitle" --column="Distribution:" $distributionlist)
+	check_variable $distroname
+else
+	sourceiso=$(kdialog --title "$fileselecttitle" --getopenfilename "$fileselectpath" "$fileselectfilter")
+	check_variable $sourceiso
+	usbdevice=$(kdialog --separate-output --title "$usbselecttitle" --checklist "USB device:" $usbdevicelistkd)
+	check_variable $usbdevice
+	distroname=$(kdialog --separate-output --title "$distrotitle" --checklist "Distribution:" $distributionlistkd)
+	check_variable $distroname
+fi
 
 case $distroname in
 	fedora)
@@ -79,17 +101,36 @@ if [ ! "$option" ]; then
         clean_up
 	exit 1
 fi
-if ! zenity --question --title="Is information below correct?" --text "Distribution: $distroname \nISO image: $sourceiso \nUSB device: $usbdevice"; then
-        clean_up
-        exit 1
+questiontitle="Is the information below correct?"
+questiontext="Distribution: $distroname \nISO image: $sourceiso \nUSB device: $usbdevice"
+errortext="oops, something went wrong"
+successtext="Your bootable usb device is now ready"
+if [[ $popup == zenity ]]; then
+	if ! zenity --question --title="$questiontitle" --text "$questiontext"; then
+	        clean_up
+	        exit 1
+	fi
+else
+	if ! kdialog --title "$questiontitle" --warningcontinuecancel "$questiontext"; then
+		clean_up
+	        exit 1
+	fi	
 fi
 
 live-fat-stick $option $sourceiso $usbdevice
 
 if [ $? != 0 ]; then
-	zenity --error --text="oops, something went wrong!"
+	if [[ $popup == zenity ]]; then
+		zenity --error --text="$errortext"
+	else
+		kdialog --error "$errortext"
+	fi
 else
-	zenity --info --text="Your bootable usb stick is now ready"
+	if [[ $popup == zenity ]]; then
+		zenity --info --text="$successtext"	
+	else
+		kdialog --msgbox "$successtext"
+	fi
 fi
 clean_up
 

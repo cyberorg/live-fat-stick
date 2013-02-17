@@ -130,7 +130,7 @@ if [[ ! -e $2 ]]; then
         echo "Device $2 does not exist"
         exit 1
 fi
-distroname=${distroname:=suse}
+distroname=${distroname:-suse}
 if [[ $distroname != suse ]] && [[ $distroname != ubuntu ]] && [[ $distroname != fedora ]]; then
         echo "this distribution's iso is currently not supported, patch welcome"
         exit 1
