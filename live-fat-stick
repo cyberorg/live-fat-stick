@@ -137,8 +137,8 @@ if [[ $distroname != suse ]] && [[ $distroname != ubuntu ]] && [[ $distroname !=
 fi
 
 #variables
-isomount=/run/tmpisomount
-stickmount=/run/tmpstickmount
+isomount=$(mktemp -d)
+stickmount=$(mktemp -d)
 stickdevice=$(echo $2 | sed 's/[0-9]*//g')
 stickbase=$(basename $2)
 isoname=$(basename $1)
