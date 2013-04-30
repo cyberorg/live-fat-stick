@@ -197,7 +197,11 @@ copy_kernel_initrd () {
 	fi
 	if [[ $distroname == ubuntu ]]; then
 		mkdir -p $syslinuxpath
-		cp $isomount/casper/vmlinuz $syslinuxpath/linux-$isonameshort
+		if [[ -e $isomount/casper/vmlinuz ]]; then
+			cp $isomount/casper/vmlinuz $syslinuxpath/linux-$isonameshort
+		else
+			cp $isomount/casper/vmlinuz.efi $syslinuxpath/linux-$isonameshort
+		fi
 		cp $isomount/casper/initrd.lz $syslinuxpath/initrd-$isonameshort
 		appendsection="append initrd=initrd-$isonameshort boot=casper iso-scan/filename=/$isoname"
 	fi
@@ -215,7 +219,11 @@ syslinux_stuff () {
 	echo "installing syslinux on $stickdevpart"
 	syslinux -i $stickdevpart
 	echo "replacing mbr of $stickdevice with syslinux mbr.bin"
-	dd if=/usr/share/syslinux/mbr.bin of=$stickdevice &>/dev/null
+	if [[ -e /usr/share/syslinux/mbr.bin ]]; then
+		dd if=/usr/share/syslinux/mbr.bin of=$stickdevice &>/dev/null
+	else
+		dd if=/usr/lib/syslinux/mbr.bin of=$stickdevice &>/dev/null
+	fi
 	echo "setting $stickdevice partition $stickpart active"
 	parted $stickdevice set $stickpart boot on &>/dev/null
 	copy_kernel_initrd
@@ -264,7 +272,11 @@ default $isonameshort
 
 EOF
 	else
+	if [[ -e /usr/share/syslinux/vesamenu.c32 ]]; then
 		cp /usr/share/syslinux/vesamenu.c32 $syslinuxpath/ || echo "/usr/share/syslinux/vesamenu.c32 is missing or cannot be copied"
+	else
+		cp /usr/lib/syslinux/vesamenu.c32 $syslinuxpath/ || echo "/usr/lib/syslinux/vesamenu.c32 is missing or cannot be copied"
+	fi
                 cat <<EOF >$syslinuxpath/syslinux.cfg
 default vesamenu.c32
 ONTIMEOUT $isonameshort
