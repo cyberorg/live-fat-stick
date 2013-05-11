@@ -179,7 +179,7 @@ try_cp_with_progress () {
 }
 copy_kernel_initrd () {
 	mount $stickdevpart $stickmount &>/dev/null
-	mount $isopath $isomount &>/dev/null
+	mount -t loop $isopath $isomount &>/dev/null
 	echo "copying kernel and initrd from iso image to $stickdevpart"
 	if [[ $distroname == suse ]]; then
 		rm $stickmount/syslinux.cfg &>/dev/null
@@ -319,7 +319,7 @@ if [[ -e $stickmount/$isoname ]];then
 else
 	isopath=$1
 fi
-if ! mount $isopath $isomount &>/dev/null; then
+if ! mount -t loop $isopath $isomount &>/dev/null; then
 	echo "unable to mount the iso image"
 	exit 1
 fi
