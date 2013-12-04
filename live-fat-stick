@@ -17,8 +17,9 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 #
 # Authors:      Jigish Gohil <cyberorg@opensuse.org>
-# This script creates bootable openSUSE, Fedora or Ubuntu(or clones) live usb stick on fat partition
-#
+# This script creates bootable openSUSE, Fedora or Ubuntu(or clones)
+# live usb stick on fat partition
+
 PATH=$PATH:/sbin:/usr/sbin:/usr/local/sbin:/usr/local/bin:/usr/bin:/bin
 umount_everything () {
 		sync
@@ -109,7 +110,7 @@ if [ "$1" == "-l" -o "$1" == "--list" ]; then
         exit
 fi
 if [[ x"$1" == x ]]; then
-	echo "Requires first arguement as iso image path"
+	echo "Requires first argument as iso image path"
 	need_help
 	exit 1
 fi
