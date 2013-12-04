@@ -306,7 +306,7 @@ EOF
 echo "Please make sure the following information is correct:"
 echo "iso name: $isoname distro: $distroname stick device: $stickdevice"
 echo "stick uuid: /dev/disk/by-uuid/$stickuuid stick partition: $stickpart"
-if [ ! -f $livestickgui ]; then
+if [ -n $livestickgui ]; then
 	are_you_sure "continue ?" "y" "n"
 fi
 mkdir $isomount $stickmount &>/dev/null
