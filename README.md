@@ -4,7 +4,10 @@ live-fat-stick
 	keeping existing data untouched.
 
 	Note: File size greater than 4G is not usable on vfat/fat32 partition so the
-	live CD/DVD iso file should not exceed this limit. 
+	live CD/DVD iso file should not exceed this limit.
+
+	Note2: Install 32bit/x86 iso on the stick first if creating multiboot with both
+	x86 and x86_64 arch images.  
 
 	Copy live-fat-stick to /usr/bin/ and chmod +x /usr/bin/live-fat-stick
 
