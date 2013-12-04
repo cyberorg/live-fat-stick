@@ -3,6 +3,9 @@ live-fat-stick
 	Create multi boot USB stick/hard disk with whole iso/s on vfat/fat32 partition
 	keeping existing data untouched.
 
+	Note: File size greater than 4G is not usable on vfat/fat32 partition so the
+	live CD/DVD iso file should not exceed this limit. 
+
 	Copy live-fat-stick to /usr/bin/ and chmod +x /usr/bin/live-fat-stick
 
 	Run this command as root (su -, not sudo)

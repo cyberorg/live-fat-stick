@@ -69,6 +69,9 @@ need_help() {
 	should work with all recent openSUSE or Ubuntu live iso images. Fedora iso is
 	not copied but is extracted as it does not support booting from iso.
 
+        Note: File size greater than 4G is not usable on vfat/fat32 partition so the
+        live CD/DVD iso file should not exceed this limit.
+
 EOF
 }
 if [[ $(id -u) != 0 ]]; then
