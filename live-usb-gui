@@ -33,10 +33,12 @@ popup=${popup:-zenity}
 which $popup &>/dev/null || echo "$popup not found, please install to use this tool"
 which live-fat-stick &>/dev/null || echo "live-fat-stick script not found in PATH, please install it and make it executable"
 
-export livestickgui=$(mktemp)
-
+export liveusbgui=/tmp/liveusbgui
+touch /tmp/liveusbgui
 clean_up () {
-	rm $livestickgui
+        if [[ -f $liveusbgui ]]; then
+                rm $liveusbgui &>/dev/null
+        fi
 }
 
 fileselecttitle="Select distribution iso file"

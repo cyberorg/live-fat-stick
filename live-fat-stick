@@ -44,6 +44,9 @@ clean_up () {
 		echo "Your bootable usb stick is now ready"
 		echo "have a lot of fun..."
 	fi
+	if [[ -f $liveusbgui ]]; then
+		rm $liveusbgui &>/dev/null 
+	fi
 }
 trap "clean_up user_killed" SIGINT SIGTERM
 need_help() {
@@ -155,6 +158,8 @@ stickuuid=$(blkid -s UUID -o value $2)
 stickpart=$(basename $2 | sed 's/[a-z]*//g')
 syslinuxpath=$stickmount/boot/syslinux
 stickdevpart=$2
+liveusbgui=/tmp/liveusbgui
+
 if [[ ! -h /dev/disk/by-uuid/$stickuuid ]]; then
         echo "wrong uuid detected, please file bug with output of: blkid $2"
 fi
@@ -313,7 +318,7 @@ EOF
 echo "Please make sure the following information is correct:"
 echo "iso name: $isoname distro: $distroname stick device: $stickdevice"
 echo "stick uuid: /dev/disk/by-uuid/$stickuuid stick partition: $stickpart"
-if [ -n $livestickgui ]; then
+if [[ ! -f $liveusbgui ]]; then
 	are_you_sure "continue ?" "y" "n"
 fi
 mkdir $isomount $stickmount &>/dev/null
