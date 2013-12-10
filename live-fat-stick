@@ -260,10 +260,6 @@ label Gnome
 	kernel linux-$isonameshort
 	$appendsection gnome
 
-label Cinnamon
-	kernel linux-$isonameshort
-	$appendsection cinnamon
-
 label memtest
 	kernel memtest
 
