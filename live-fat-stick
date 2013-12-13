@@ -203,7 +203,7 @@ copy_kernel_initrd () {
 		fi
 		cp $isomount/boot/*/loader/linux $syslinuxpath/linux-$isonameshort
 		cp $isomount/boot/*/loader/initrd $syslinuxpath/initrd-$isonameshort
-		appendsection="append initrd=initrd-$isonameshort ramdisk_size=512000 ramdisk_blocksize=4096 isofrom=/dev/disk/by-uuid/$stickuuid:/$isoname isofrom_device=/dev/disk/by-uuid/$stickuuid isofrom_system=/$isoname loader=syslinux splash=silent quiet showopts"
+		appendsection="append initrd=initrd-$isonameshort isofrom=/dev/disk/by-uuid/$stickuuid:/$isoname isofrom_device=/dev/disk/by-uuid/$stickuuid isofrom_system=/$isoname loader=syslinux splash=silent quiet showopts"
 		isolinux_msg="display isolinux.msg"
 		ui="ui gfxboot bootlogo isolinux.msg"
 	fi
