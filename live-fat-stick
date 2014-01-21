@@ -180,13 +180,13 @@ are_you_sure ()  {
 }
 try_cp_with_progress () {
 	if [ -x /usr/bin/dd_rescue ]; then
-        	dd_rescue "$1" "$2" 
+        	nice dd_rescue "$1" "$2" 
         	return
 	fi
         if [[ $distroname == fedora ]]; then
-		cp -r "$1/*" "$2"
+		nice cp -r "$1/*" "$2"
 	else
-		cp -r "$1" "$2"
+		nice cp -r "$1" "$2"
 	fi
 }
 copy_kernel_initrd () {

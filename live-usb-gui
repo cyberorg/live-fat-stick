@@ -124,7 +124,7 @@ fi
 
 if [[ $option == isohybrid ]]; then
 	usbdev=$(echo $usbdevice | sed 's/[0-9]*//g')
-	xterm -e "dd_rescue $sourceiso $usbdev"
+	xterm -e "nice dd_rescue $sourceiso $usbdev"
 else
 	xterm -e "live-fat-stick $option $sourceiso $usbdevice"
 fi
