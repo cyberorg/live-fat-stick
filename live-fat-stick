@@ -179,8 +179,8 @@ are_you_sure ()  {
         done
 }
 try_cp_with_progress () {
-	if [ -x /usr/bin/rsync ]; then
-        	rsync --inplace -aP "$1" "$2" 2>/dev/null
+	if [ -x /usr/bin/dd_rescue ]; then
+        	dd_rescue "$1" "$2" 
         	return
 	fi
         if [[ $distroname == fedora ]]; then

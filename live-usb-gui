@@ -45,7 +45,7 @@ fileselecttitle="Select distribution iso file"
 fileselectpath="/"
 fileselectfilter="*iso"
 usbselecttitle="Select the target USB device"
-distributionlist="suse fedora mint ubuntu"
+distributionlist="suse fedora mint ubuntu isohybrid"
 distrotitle="Select the distribution of the iso"
 usbdevicelist=$(for i in `echo $(for i in $(find /dev/disk/by-id/ |grep usb); do readlink -f $i;done)`
 	do
@@ -97,6 +97,9 @@ case $distroname in
 	mint)
 	option="--ubuntu"
 	;;
+        isohybrid)
+        option="isohybrid"
+        ;;
 esac
 
 if [ ! "$option" ]; then
@@ -119,7 +122,12 @@ else
 	fi	
 fi
 
-live-fat-stick $option $sourceiso $usbdevice
+if [[ $option == isohybrid ]]; then
+	usbdev=$(echo $usbdevice | sed 's/[0-9]*//g')
+	xterm -e "dd_rescue $sourceiso $usbdev"
+else
+	xterm -e "live-fat-stick $option $sourceiso $usbdevice"
+fi
 
 if [ $? != 0 ]; then
 	if [[ $popup == zenity ]]; then
