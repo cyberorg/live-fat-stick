@@ -7,7 +7,9 @@ live-fat-stick
 	live CD/DVD iso file should not exceed this limit.
 
 	Note2: Install 32bit/x86 iso on the stick first if creating multiboot with both
-	x86 and x86_64 arch images.  
+	x86 and x86_64 arch images.
+
+	Note3: Requires: syslinux and dd_rescue installed on the system running this.
 
 	Copy live-fat-stick to /usr/bin/ and chmod +x /usr/bin/live-fat-stick
 
@@ -34,7 +36,7 @@ live-fat-stick
 
 live-usb-gui
 ==============
-	Simple zenity based GUI that runs live-fat-stick script
+	Simple zenity/kdialog based GUI that runs live-fat-stick script
 
 	Copy live-usb-gui to /usr/bin/ and chmod +x /usr/bin/live-usb-gui
 	Copy live-usb-gui.desktop to /usr/share/applications/ and update-desktop-database -q
@@ -43,9 +45,17 @@ live-usb-gui
 	Run this command without any options as root from terminal (su -, not sudo) or
 	Alt+F2 and xdg-su -c "xterm -e live-usb-gui"
 
+	For iso images processed with isohybrid such as openSUSE installation DVD and UEFI boot support
+	and any other Linux distributions select "isohybrid" from distribution selection dialog.
+
+	Please note that USB created using isohybrid mode will be wiped out completely and
+	will not be usable from Windows OS, so back up the data from the USB stick before hand.
+
 	openSUSE users can install it via 1-click from here:
 	http://software.opensuse.org/package/live-usb-gui
 
+	Note: Requires: live-fat-stick, zenity/kdialog, syslinux and dd_rescue installed 
+	on the system running this.
 
 
 It is possible to boot multiple distributions and iso images from same device, 
