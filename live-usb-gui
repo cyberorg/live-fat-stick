@@ -23,6 +23,7 @@ if [[ $(id -u) != 0 ]]; then
 	exit 1
 fi
 PATH=$PATH:/sbin:/usr/sbin:/usr/local/sbin:/usr/local/bin:/usr/bin:/bin
+ionice -c3 -p$$
 if [ x"$WINDOWMANAGER" = x"/usr/bin/startkde" ]; then
 	which kdialog &>/dev/null && popup=kdialog
 else
@@ -49,9 +50,9 @@ distributionlist="suse fedora mint ubuntu isohybrid"
 distrotitle="Select the distribution of the iso"
 usbdevicelist=$(for i in `echo $(for i in $(find /dev/disk/by-id/ |grep usb); do readlink -f $i;done)`
 	do
-        	if [[ $(blkid -s TYPE -o value $i) == vfat ]];then
+        #	if [[ $(blkid -s TYPE -o value $i) == vfat ]];then
         		echo $i
-                fi
+        #        fi
 done)
 usbdevicelistkd=$(for device in $usbdevicelist; do
 	printf "%s %s %s" ${device} ${device} off 
@@ -124,7 +125,7 @@ fi
 
 if [[ $option == isohybrid ]]; then
 	usbdev=$(echo $usbdevice | sed 's/[0-9]*//g')
-	xterm -e "nice dd_rescue $sourceiso $usbdev"
+	xterm -e "live-fat-stick --isohybrid $sourceiso $usbdev"
 else
 	xterm -e "live-fat-stick $option $sourceiso $usbdevice"
 fi

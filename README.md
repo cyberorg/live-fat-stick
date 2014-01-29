@@ -23,11 +23,15 @@ live-fat-stick
 		For Ubuntu	: live-fat-stick --ubuntu /path/to/ubuntu-filename.iso /dev/sdXY
 		For Mint	: live-fat-stick --mint /path/to/mint-filename.iso /dev/sdXY
 		For Fedora	: live-fat-stick --fedora /path/to/fedora-filename.iso /dev/sdXY
+		For isohybrid	: live-fat-stick --isohybrid /path/to/isohybridimage.iso /dev/sdX
 
 	isopath should be full absolute path of iso image and the device should be 
 	actual partition on the stick like /dev/sdb1, /dev/sdc1,/dev/sdc2...
 
-	The stick partition has to be vfat/fat32 format.
+	The stick partition has to be vfat/fat32 format if the image is not isohybrid.
+
+	Please note that using isohybrid option will remove all existing data on the USB device
+	and create new partitions.
 
 	Run live-fat-stick -l(or --list) to list the possible usb storage devices available.
 

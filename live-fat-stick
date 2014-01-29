@@ -21,6 +21,7 @@
 # live usb stick on fat partition
 
 PATH=$PATH:/sbin:/usr/sbin:/usr/local/sbin:/usr/local/bin:/usr/bin:/bin
+ionice -c3 -p$$
 umount_everything () {
 		sync
                 umount $isomount &>/dev/null             
@@ -97,6 +98,9 @@ while [ $# -gt 2 ]; do
                 --ubuntu|--mint)
                 distroname=ubuntu
                 ;;
+		--isohybrid)
+		distroname=isohybrid
+		;;
                 *)
                 echo "invalid arg -- $1"
 		need_help
@@ -141,7 +145,7 @@ if [[ ! -e $2 ]]; then
         exit 1
 fi
 distroname=${distroname:-suse}
-if [[ $distroname != suse ]] && [[ $distroname != ubuntu ]] && [[ $distroname != fedora ]]; then
+if [[ $distroname != suse ]] && [[ $distroname != ubuntu ]] && [[ $distroname != fedora ]] && [[ $distroname != isohybrid ]]; then
         echo "this distribution's iso is currently not supported, patch welcome"
         exit 1
 fi
@@ -180,13 +184,15 @@ are_you_sure ()  {
 }
 try_cp_with_progress () {
 	if [ -x /usr/bin/dd_rescue ]; then
-        	nice dd_rescue "$1" "$2" 
+		sync
+        	nice ionice -c3 dd_rescue -b 4M -y 4M "$1" "$2"
+		sync
         	return
 	fi
         if [[ $distroname == fedora ]]; then
-		nice cp -r "$1/*" "$2"
+		nice ionice -c3 cp -r "$1/*" "$2"
 	else
-		nice cp -r "$1" "$2"
+		nice ionice -c3 cp -r "$1" "$2"
 	fi
 }
 copy_kernel_initrd () {
@@ -317,46 +323,50 @@ echo "stick uuid: /dev/disk/by-uuid/$stickuuid stick partition: $stickpart"
 if [[ ! -f $liveusbgui ]]; then
 	are_you_sure "continue ?" "y" "n"
 fi
-mkdir $isomount $stickmount &>/dev/null
-if ! mount $2 $stickmount &>/dev/null; then
-        echo "unable to mount the usb stick partition"
-        exit 1
-fi
-if [[ -e $stickmount/$isoname ]];then
-	isopath=$stickmount/$isoname
+if [[ $distroname == isohybrid ]];then
+	echo "isohybrid image"
+	try_cp_with_progress $1 $2
 else
-	isopath=$1
-fi
-if ! mount -o loop $isopath $isomount &>/dev/null; then
-	echo "unable to mount the iso image"
-	exit 1
-fi
-if [[ -f $stickmount/fatstick ]]; then
-        echo "the stick is already bootable stick"
-	if ! grep -q $isonameshort $syslinuxpath/syslinux.cfg; then
-		copy_kernel_initrd
-		echo "adding new image to boot menu"
+	mkdir $isomount $stickmount &>/dev/null
+	if ! mount $2 $stickmount &>/dev/null; then
+		echo "unable to mount the usb stick partition"
+		exit 1
+	fi
+	if [[ -e $stickmount/$isoname ]];then
+		isopath=$stickmount/$isoname
+	else
+		isopath=$1
+	fi
+	if ! mount -o loop $isopath $isomount &>/dev/null; then
+		echo "unable to mount the iso image"
+		exit 1
+	fi
+	if [[ -f $stickmount/fatstick ]]; then
+		echo "the stick is already bootable stick"
+		if ! grep -q $isonameshort $syslinuxpath/syslinux.cfg; then
+			copy_kernel_initrd
+			echo "adding new image to boot menu"
+			add_menu_section
+		fi
+	else
+		umount $stickmount &>/dev/null || true
+		umount $stickdevpart &>/dev/null || true
+		umount $isopath &>/dev/null || true
+		syslinux_stuff
+		echo "creating menu entries"
+		create_syslinux_cfg
 		add_menu_section
 	fi
-else
-	umount $stickmount &>/dev/null || true
-	umount $stickdevpart &>/dev/null || true
-	umount $isopath &>/dev/null || true
-	syslinux_stuff
-	echo "creating menu entries"
-	create_syslinux_cfg
-	add_menu_section
-fi
-touch $stickmount/fatstick
-if [[ $distroname != fedora ]]; then
-	if [[ ! -f $stickmount/$isoname ]]; then
-		echo "copying $isoname to usb stick"
-		try_cp_with_progress $1 $stickmount/
-	else
-		echo "using existing $isoname on the stick"
+	touch $stickmount/fatstick
+	if [[ $distroname != fedora ]]; then
+		if [[ ! -f $stickmount/$isoname ]]; then
+			echo "copying $isoname to usb stick"
+			try_cp_with_progress $1 $stickmount/
+		else
+			echo "using existing $isoname on the stick"
+		fi
 	fi
+	thisscript=$(readlink -f $0)
+	cp $thisscript $stickmount/ &>/dev/null || true
+	clean_up
 fi
-thisscript=$(readlink -f $0)
-cp $thisscript $stickmount/ &>/dev/null || true
-clean_up
-
