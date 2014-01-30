@@ -9,7 +9,7 @@ live-fat-stick
 	Note2: Install 32bit/x86 iso on the stick first if creating multiboot with both
 	x86 and x86_64 arch images.
 
-	Note3: Requires: syslinux and dd_rescue installed on the system running this.
+	Note3: Requires: syslinux, fuseiso and dd_rescue/ddrescue installed on the system running this.
 
 	Copy live-fat-stick to /usr/bin/ and chmod +x /usr/bin/live-fat-stick
 
