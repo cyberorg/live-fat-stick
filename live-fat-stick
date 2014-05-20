@@ -339,7 +339,7 @@ if [[ ! -f $liveusbgui ]]; then
 	are_you_sure "continue ?" "y" "n"
 fi
 if [[ $distroname == isohybrid ]];then
-	try_cp_with_progress $1 $2
+	try_cp_with_progress $1 $stickdevice
 else
 	mkdir $isomount $stickmount &>/dev/null
 	if ! mount $2 $stickmount &>/dev/null; then
