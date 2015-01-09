@@ -2,6 +2,8 @@
 # live-fat-stick
 #
 # Copyright (c) 2012 CyberOrg Info
+# Copyright (c) 2014 Mindaugas Baranauskas
+
 # This program is free software; you can redistribute it and/or modify it under
 # the terms of the GNU General Public License as published by the Free Software
 # Foundation; either version 2 of the License, or (at your option) any later
@@ -16,9 +18,14 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 #
-# Authors:      Jigish Gohil <cyberorg@opensuse.org>
+# Original authors:      Jigish Gohil <cyberorg@opensuse.org>
+# Contributors:          Mindaugas Baranauskas <opensuse.lietuviu.kalba@gmail.com>
+#
 # This script creates bootable openSUSE, Fedora or Ubuntu(or clones)
 # live usb stick on fat partition
+#
+# To get POT file for localization, execute:
+# bash --dump-po-strings live-fat-stick > live-fat-stick.pot
 
 PATH=$PATH:/sbin:/usr/sbin:/usr/local/sbin:/usr/local/bin:/usr/bin:/bin
 ionice -c3 -p$$
@@ -49,6 +56,7 @@ clean_up () {
 	fi
 	if [[ -f $liveusbgui ]]; then
 		rm $liveusbgui &>/dev/null 
+		rm "$iso_symlink"
 	fi
 }
 trap "clean_up user_killed" SIGINT SIGTERM
@@ -138,8 +146,8 @@ fi
 if [[ x"$2" == x ]]; then
 	echo "Requires second arguement as device partition path, /dev/sdb1 for example"
 	need_help
-	echo "Here is the list of possible usb storage devices on your computer,"
-	echo "use the correct one, usually the one with a number at the end:"
+	echo "Here is the list of possible usb storage devices on your computer, "
+	echo "use the correct one, usually the one with a number at the end: "
 	echo "$(for i in $(find /dev/disk/by-id/ |grep usb); do readlink -f $i;done)"
 	exit 1
 fi
@@ -167,10 +175,11 @@ fi
 
 #variables
 isomount=$(mktemp -d)
+iso_symlink=$(mktemp) ; rm $iso_symlink ; ln -s "$1" $iso_symlink
 stickmount=$(mktemp -d)
 stickdevice=$(echo $2 | sed 's/[0-9]*//g')
 stickbase=$(basename $2)
-isoname=$(basename $1)
+isoname=$(basename "$1")
 isonameshort=$(echo $isoname | cut -d "-" -f 1,2,3)
 #stickuuid=$(ls -l /dev/disk/by-uuid/ |grep $stickbase | cut -d " " -f 9)
 stickuuid=$(blkid -s UUID -o value $2)
@@ -194,19 +203,19 @@ are_you_sure ()  {
                 case $answer in
                         y | Y | yes | YES ) answer="y"; break;;
                         n | N | no | NO ) exit;;
-                        *) echo "Please answer yes or no.";;
+                        *) echo "Please answer (y)es or (n)o.";;
                 esac
         done
 }
 try_cp_with_progress () {
 	sync
         if [ -x /usr/bin/dd_rescue ]; then
-        	$benice dd_rescue -A -b 4M -y 4M "$1" "$2"
+        	$benice dd_rescue -A -b 4M -y 4M "$iso_symlink" "$2"
 	elif [ -x /usr/bin/ddrescue ]; then
-		$benice ddrescue --force --block-size=4M "$1" "$2"
+		$benice ddrescue --force --block-size=4M "$iso_symlink" "$2"
 	else
 		echo "dd_rescue or ddrescue not found, please install one of them, using dd for now"
-		$benice dd if="$1" of="$2" bs=4M
+		$benice dd if="$iso_symlink" of="$2" bs=4M
 	fi
 }
 copy_kernel_initrd () {
@@ -339,7 +348,7 @@ if [[ ! -f $liveusbgui ]]; then
 	are_you_sure "continue ?" "y" "n"
 fi
 if [[ $distroname == isohybrid ]];then
-	try_cp_with_progress $1 $stickdevice
+	try_cp_with_progress $1 $2
 else
 	mkdir $isomount $stickmount &>/dev/null
 	if ! mount $2 $stickmount &>/dev/null; then
@@ -349,7 +358,7 @@ else
 	if [[ -e $stickmount/$isoname ]];then
 		isopath=$stickmount/$isoname
 	else
-		isopath=$1
+		isopath=$iso_symlink
 	fi
 	if [[ -f $stickmount/fatstick ]]; then
 		echo "the stick is already bootable stick"
