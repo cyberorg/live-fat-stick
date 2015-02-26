@@ -48,7 +48,7 @@ fileselectfilter="*iso"
 usbselecttitle="Select the target USB device"
 distributionlist="suse fedora mint ubuntu isohybrid"
 distrotitle="Select the distribution of the iso"
-usbdevicelist=$(for i in `echo $(for i in $(find /dev/disk/by-id/ |grep usb); do readlink -f $i;done)`
+usbdevicelist=$(for i in `echo $(for i in $(find /dev/disk/by-path/ |grep usb); do readlink -f $i;done)`
 	do
         #	if [[ $(blkid -s TYPE -o value $i) == vfat ]];then
         		echo $i
