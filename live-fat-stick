@@ -135,7 +135,7 @@ fi
 if [ "$1" == "-l" -o "$1" == "--list" ]; then
         echo "Here is the list of possible usb storage devices on your computer,"
         echo "use the correct one, usually the one with a number at the end:"
-        echo "$(for i in $(find /dev/disk/by-id/ |grep usb); do readlink -f $i;done)"
+        echo "$(for i in $(find /dev/disk/by-path/ |grep usb); do readlink -f $i;done)"
         exit
 fi
 if [[ x"$1" == x ]]; then
@@ -148,7 +148,7 @@ if [[ x"$2" == x ]]; then
 	need_help
 	echo "Here is the list of possible usb storage devices on your computer, "
 	echo "use the correct one, usually the one with a number at the end: "
-	echo "$(for i in $(find /dev/disk/by-id/ |grep usb); do readlink -f $i;done)"
+	echo "$(for i in $(find /dev/disk/by-path/ |grep usb); do readlink -f $i;done)"
 	exit 1
 fi
 if [[ ! -e /usr/bin/syslinux ]]; then
