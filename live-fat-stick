@@ -348,7 +348,7 @@ if [[ ! -f $liveusbgui ]]; then
 	are_you_sure "continue ?" "y" "n"
 fi
 if [[ $distroname == isohybrid ]];then
-	try_cp_with_progress $1 $2
+	try_cp_with_progress "$1" "$2"
 else
 	mkdir $isomount $stickmount &>/dev/null
 	if ! mount $2 $stickmount &>/dev/null; then
@@ -380,7 +380,7 @@ else
 	if [[ $distroname != fedora ]]; then
 		if [[ ! -f $stickmount/$isoname ]]; then
 			echo "copying $isoname to usb stick"
-			try_cp_with_progress $1 $stickmount/$isoname
+			try_cp_with_progress "$1" "$stickmount/$isoname"
 		else
 			echo "using existing $isoname on the stick"
 		fi
