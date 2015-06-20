@@ -250,7 +250,7 @@ copy_kernel_initrd () {
 		mkdir -p $syslinuxpath
 		mkdir -p $stickmount/$isonameshort
 		echo "copying the content of iso image, this may take a while"
-		$benice cp -r "$isomount/*" "/$stickmount/$isonameshort/"
+		$benice cp -r "$isomount"/* "/$stickmount/$isonameshort/"
 		mv $stickmount/$isonameshort/isolinux/initrd0.img $syslinuxpath/initrd-$isonameshort
 		mv $stickmount/$isonameshort/isolinux/vmlinuz0 $syslinuxpath/linux-$isonameshort
 		appendsection="append initrd=initrd-$isonameshort root=UUID=$stickuuid rootfstype=vfat rd.live.dir=/$isonameshort/LiveOS/ ro rd.live.image rd.luks=0 rd.md=0 rd.dm=0 quiet rhgb"
