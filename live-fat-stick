@@ -176,7 +176,8 @@ fi
 
 #variables
 isomount=$(mktemp -d)
-iso_symlink=$(mktemp) ; rm $iso_symlink ; ln -s "$1" $iso_symlink
+isopath=$(readlink -f "$1")
+iso_symlink=$(mktemp) ; rm $iso_symlink ; ln -s "$isopath" $iso_symlink
 stickmount=$(mktemp -d)
 stickdevice=$(echo $2 | sed 's/[0-9]*//g')
 stickbase=$(basename $2)
@@ -248,12 +249,12 @@ copy_kernel_initrd () {
 		appendsection="append initrd=initrd-$isonameshort boot=casper iso-scan/filename=/$isoname"
 	fi
 	if [[ $distroname == fedora ]]; then
-		mkdir -p $syslinuxpath
-		mkdir -p $stickmount/$isonameshort
+		mkdir -p "$syslinuxpath"
+		mkdir -p "$stickmount/$isonameshort"
 		echo "copying the content of iso image, this may take a while"
 		$benice cp -r "$isomount"/* "/$stickmount/$isonameshort/"
-		mv $stickmount/$isonameshort/isolinux/initrd0.img $syslinuxpath/initrd-$isonameshort
-		mv $stickmount/$isonameshort/isolinux/vmlinuz0 $syslinuxpath/linux-$isonameshort
+		mv "$stickmount/$isonameshort"/isolinux/initrd0.img $syslinuxpath/initrd-$isonameshort
+		mv "$stickmount/$isonameshort"/isolinux/vmlinuz0 $syslinuxpath/linux-$isonameshort
 		appendsection="append initrd=initrd-$isonameshort root=UUID=$stickuuid rootfstype=vfat rd.live.dir=/$isonameshort/LiveOS/ ro rd.live.image rd.luks=0 rd.md=0 rd.dm=0 quiet rhgb"
 	fi
 	umount $isomount &>/dev/null
