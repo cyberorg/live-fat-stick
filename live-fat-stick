@@ -182,7 +182,8 @@ stickmount=$(mktemp -d)
 stickdevice=$(echo $2 | sed 's/[0-9]*//g')
 stickbase=$(basename $2)
 isoname=$(basename "$1")
-isonameshort=$(echo $isoname | cut -d "-" -f 1,2,3)
+isonametr=$(echo $isoname | tr " " _)
+isonameshort=$(echo $isoname | cut -d "-" -f 1,2,3 | tr " " _)
 #stickuuid=$(ls -l /dev/disk/by-uuid/ |grep $stickbase | cut -d " " -f 9)
 stickuuid=$(blkid -s UUID -o value $2)
 stickpart=$(basename $2 | sed 's/[a-z]*//g')
@@ -190,6 +191,11 @@ syslinuxpath=$stickmount/boot/syslinux
 stickdevpart=$2
 liveusbgui=/tmp/liveusbgui
 benice="nice ionice -c3"
+
+if [[ $isoname != $isonametr ]]; then
+	echo "removing space/s from iso name copied to the destination disk"
+	export isoname=$isonametr
+fi
 
 if [[ ! -h /dev/disk/by-uuid/$stickuuid ]]; then
         echo "wrong uuid detected, please file bug with output of: blkid $2"
