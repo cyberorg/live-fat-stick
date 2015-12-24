@@ -1,0 +1,398 @@
+#!/bin/bash
+# live-grub-stick
+#
+# Copyright (c) 2015 CyberOrg Info
+# Copyright (c) 2014 Mindaugas Baranauskas
+
+# This program is free software; you can redistribute it and/or modify it under
+# the terms of the GNU General Public License as published by the Free Software
+# Foundation; either version 2 of the License, or (at your option) any later
+# version.
+#
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+# details.
+#
+# You should have received a copy of the GNU General Public License along with
+# this program; if not, write to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+#
+# Original authors:      Jigish Gohil <cyberorg@opensuse.org>
+# Contributors:          Mindaugas Baranauskas <opensuse.lietuviu.kalba@gmail.com>
+#
+# This script creates bootable openSUSE, Fedora or Ubuntu(or clones)
+# live usb stick on fat partition
+#
+# To get POT file for localization, execute:
+# bash --dump-po-strings live-grub-stick > live-grub-stick.pot
+
+PATH=$PATH:/sbin:/usr/sbin:/usr/local/sbin:/usr/local/bin:/usr/bin:/bin
+ionice -c3 -p$$
+umount_everything () {
+	sync
+	if [[ $distroname != isohybrid ]]; then
+                umount $isomount &>/dev/null             
+                umount $stickdevpart &>/dev/null
+		rm -rf $isomount &>/dev/null
+                umount $stickmount &>/dev/null
+		while $(mount | grep $stickmount &>/dev/null); do
+			umount $stickdevpart &>/dev/null
+			sleep 2
+		done
+		rmdir $stickmount &>/dev/null || echo "unable to remove $stickmount, please remove manually"
+		rm $isopath &>/dev/null
+	fi
+}
+clean_up () {
+	if [[ $1 == user_killed ]] ; then
+		echo "aborting and cleaning up"
+		umount_everything
+		exit 1
+	else
+		echo "cleaning up"
+		umount_everything
+		echo "Your bootable usb stick is now ready"
+		echo "have a lot of fun..."
+	fi
+	if [[ -f $liveusbgui ]]; then
+		rm $liveusbgui &>/dev/null 
+		rm "$iso_symlink"
+	fi
+}
+trap "clean_up user_killed" SIGINT SIGTERM
+need_help() {
+	cat <<EOF
+        Create multi boot USB stick/hard disk with whole iso/s on vfat/fat32 partition
+        keeping existing data untouched.
+
+        Note: File size greater than 4G is not usable on vfat/fat32 partition so the
+        live CD/DVD iso file should not exceed this limit.
+
+        Note2: Install 32bit/x86 iso on the stick first if creating multiboot with both
+        x86 and x86_64 arch images.
+
+        Note3: Requires: grub2, fuseiso and dd_rescue/ddrescue installed on the system running this.
+
+        Run this command as root (su -, not sudo)
+                live-grub-stick isopath stickpartition
+        e.g.: 
+                live-grub-stick /home/geeko/openSUSE-Edu-li-f-e-12.2-1-i686.iso /dev/sdXY
+
+        To add various distribution iso to the stick, run the following:
+                For openSUSE    : live-grub-stick --suse /path/to/openSUSE-filename.iso /dev/sdXY
+                For Ubuntu      : live-grub-stick --ubuntu /path/to/ubuntu-filename.iso /dev/sdXY
+                For Mint        : live-grub-stick --mint /path/to/mint-filename.iso /dev/sdXY
+                For Fedora      : live-grub-stick --fedora /path/to/fedora-filename.iso /dev/sdXY
+
+                For isohybrid   : live-grub-stick --isohybrid /path/to/isohybridimage.iso /dev/sdX
+
+        isopath should be full absolute path of iso image and the device should be 
+        actual partition on the stick like /dev/sdb1, /dev/sdc1,/dev/sdc2...
+
+        The stick partition has to be vfat/fat32 format if the image is not isohybrid.
+
+        Please note that using isohybrid option will remove all existing data on the USB device
+        and create new partitions.
+
+        Run live-grub-stick -l(or --list) to list the possible usb storage devices available.
+
+        openSUSE users can install it via 1-click from here:
+        http://software.opensuse.org/package/live-grub-stick
+
+EOF
+}
+if [[ $(id -u) != 0 ]]; then
+	echo "run this command as root"
+	need_help
+	exit 1
+fi
+while [ $# -gt 2 ]; do
+        case $1 in
+                --fedora)
+                distroname=fedora
+                ;;
+                --suse|--opensuse)
+                distroname=suse
+                ;;
+                --ubuntu|--mint)
+                distroname=ubuntu
+                ;;
+		--isohybrid)
+		distroname=isohybrid
+		;;
+                *)
+                echo "invalid arg -- $1"
+		need_help
+                exit 1
+                ;;
+        esac
+        shift
+done
+if [ "$1" == "-h" -o "$1" == "--help" ]; then
+        need_help
+        exit
+fi
+if [ "$1" == "-l" -o "$1" == "--list" ]; then
+        echo "Here is the list of possible usb storage devices on your computer,"
+        echo "use the correct one, usually the one with a number at the end:"
+        echo "$(for i in $(find /dev/disk/by-path/ |grep usb); do readlink -f $i;done)"
+        exit
+fi
+if [[ x"$1" == x ]]; then
+	echo "Requires first argument as iso image path"
+	need_help
+	exit 1
+fi
+if [[ x"$2" == x ]]; then
+	echo "Requires second arguement as device partition path, /dev/sdb1 for example"
+	need_help
+	echo "Here is the list of possible usb storage devices on your computer, "
+	echo "use the correct one, usually the one with a number at the end: "
+	echo "$(for i in $(find /dev/disk/by-path/ |grep usb); do readlink -f $i;done)"
+	exit 1
+fi
+if [[ ! -e $(which grub2-install) ]]; then
+	echo "grub2-install command not found, please install grub2 package"
+	exit 1
+fi
+if [[ ! -e $(which fuseiso) ]]; then
+        echo "fuseiso not found, please install fuseiso package"
+        exit 1
+fi
+if [[ ! -e $1 ]]; then
+	echo "File $1 does not exist"
+	exit 1
+fi
+if [[ ! -e $2 ]]; then
+        echo "Device $2 does not exist"
+        exit 1
+fi
+distroname=${distroname:-suse}
+if [[ $distroname != suse ]] && [[ $distroname != ubuntu ]] && [[ $distroname != fedora ]] && [[ $distroname != isohybrid ]]; then
+        echo "this distribution's iso is currently not supported, patch welcome"
+        exit 1
+fi
+
+#variables
+isomount=$(mktemp -d)
+isopath=$(readlink -f "$1")
+iso_symlink=$(mktemp) ; rm $iso_symlink ; ln -s "$isopath" $iso_symlink
+stickmount=$(mktemp -d)
+stickdevice=$(echo $2 | sed 's/[0-9]*//g')
+stickbase=$(basename $2)
+isoname=$(basename "$1")
+isonametr=$(echo $isoname | tr " " _)
+isonameshort=$(echo $isoname | cut -d "-" -f 1,2,3 | tr " " _)
+stickuuid=$(blkid -s UUID -o value $2)
+isolabel=$(blkid -s LABEL -o value $1)
+stickpart=$(basename $2 | sed 's/[a-z]*//g')
+grub2path=$stickmount/boot/grub2
+grubcfgpath=$grub2path/grub.cfg
+stickdevpart=$2
+liveusbgui=/tmp/liveusbgui
+benice="nice ionice -c3"
+
+if [[ $isoname != $isonametr ]]; then
+	echo "removing space/s from iso name copied to the destination disk"
+	export isoname=$isonametr
+fi
+
+if [[ ! -h /dev/disk/by-uuid/$stickuuid ]]; then
+        echo "wrong uuid detected, please file bug with output of: blkid $2"
+fi
+
+if echo $isoname | grep -qi "Li-f-e"; then
+	isonameshort=openSUSE-Edu-Li-f-e
+fi
+are_you_sure ()  {
+        echo  -n "$1 [$2/$3]? "
+        while true; do
+                read answer
+                case $answer in
+                        y | Y | yes | YES ) answer="y"; break;;
+                        n | N | no | NO ) exit;;
+                        *) echo "Please answer (y)es or (n)o.";;
+                esac
+        done
+}
+try_cp_with_progress () {
+	sync
+        if [ -x /usr/bin/dd_rescue ]; then
+        	$benice dd_rescue -A -b 4M -y 4M "$iso_symlink" "$2"
+	elif [ -x /usr/bin/ddrescue ]; then
+		$benice ddrescue --force --block-size=4M "$iso_symlink" "$2"
+	else
+		echo "dd_rescue or ddrescue not found, please install one of them, using dd for now"
+		$benice dd if="$iso_symlink" of="$2" bs=4M
+	fi
+}
+cfg_setup() {
+	mount $stickdevpart $stickmount &>/dev/null
+	fuseiso $isopath $isomount &>/dev/null
+	if [[ $distroname == suse ]]; then
+		if [[ ! -f $stickmount/fatstick ]]; then
+			if [[ -d $stickmount/boot ]];then
+				mkdir -p $stickmount/boot
+			fi
+			echo "copying grub2 files to $stickmount/boot/"
+			cp -r $isomount/boot/grub2 $stickmount/boot/
+		fi
+		appendsection="\$linux (loop)/boot/x86_64/loader/linux isofrom=/dev/disk/by-uuid/$stickuuid:/$isoname isofrom_device=/dev/disk/by-uuid/$stickuuid isofrom_system=/$isoname loader=syslinux splash=silent quiet showopts"
+		appendsection2="\$initrd (loop)/boot/x86_64/loader/initrd"
+	fi
+	if [[ $distroname == ubuntu ]]; then
+		if [[ -e $isomount/casper/vmlinuz ]]; then
+			vmlinuzfile=/casper/vmlinuz
+		else
+			vmlinuzfile=/casper/vmlinuz.efi
+		fi
+		appendsection="linux (loop)/$vmlinuzfile boot=casper iso-scan/filename=/$isoname"
+		appendsection2="initrd (loop)/casper/initrd.lz"
+	fi
+	if [[ $distroname == fedora ]]; then
+		appendsection="linux (loop)/isolinux/vmlinuz0 iso-scan/filename=/$isoname root=LABEL=$isolabel rootfstype=auto ro rd.live.image rd.luks=0 rd.md=0 rd.dm=0 quiet rhgb"
+		appendsection2="initrd (loop)/isolinux/initrd0.img"
+	fi
+	umount $isomount &>/dev/null
+}
+grub2_stuff () {
+	echo "installing grub2 on $stickdevice"
+	mkdir -p $stickmount/boot
+	grub2-install --target=i386-pc --boot-directory=$stickmount/boot $stickdevice
+	echo "setting $stickdevice partition $stickpart active"
+	parted $stickdevice set $stickpart boot on &>/dev/null
+	cfg_setup
+}
+add_harddisk_section () {
+	if ! grep -q localboot $grubcfgpath; then
+	        cat <<EOF >>$grubcfgpath
+
+label harddisk
+  	localboot 0x80
+EOF
+	fi
+}
+add_menu_section_suse () {
+echo nothing
+}
+create_grub_cfg() {
+        cat <<EOF >$grubcfgpath
+insmod fat
+insmod ext2
+insmod part_gpt
+insmod efi_gop
+insmod iso9660
+insmod chain
+insmod linux
+insmod echo
+insmod configfile
+insmod boot
+insmod search_label
+insmod search_fs_file
+insmod search
+insmod search_fs_uuid
+insmod ls
+insmod video
+insmod video_fb
+insmod normal
+insmod test
+insmod sleep
+insmod png
+insmod gettext
+insmod gzio
+insmod efi_uga
+
+if [ \$grub_platform = "efi" ]; then
+    set linux=linuxefi
+    set initrd=initrdefi
+else
+    set linux=linux
+    set initrd=initrd
+fi
+set default=0
+set font=/boot/grub2/fonts/unicode.pf2
+if loadfont \$font ;then
+	set gfxmode=auto
+	insmod gfxterm
+	insmod gfxmenu
+	terminal_input gfxterm
+	if terminal_output gfxterm; then true; else
+		terminal gfxterm
+	fi
+fi
+if loadfont /boot/grub2/themes/openSUSE/ascii.pf2;then
+	loadfont /boot/grub2/themes/openSUSE/DejaVuSans-Bold14.pf2
+	loadfont /boot/grub2/themes/openSUSE/DejaVuSans10.pf2
+	loadfont /boot/grub2/themes/openSUSE/DejaVuSans12.pf2
+	loadfont /boot/grub2/themes/openSUSE/ascii.pf2
+	set theme=/boot/grub2/themes/openSUSE/theme.txt
+	background_image -m stretch /boot/grub2/themes/openSUSE/background.png
+fi
+set timeout=10
+
+EOF
+
+}
+add_menu_section () {
+        cat <<EOF >>$grubcfgpath
+
+menuentry "$isonameshort" --class $distroname --class os {
+	loopback loop /$isoname
+	echo Loading linux...
+	set gfxpayload=keep
+	$appendsection
+	echo Loading initrd...
+	$appendsection2
+}
+
+EOF
+}
+
+echo "Please make sure the following information is correct:"
+echo "iso name: $isoname distro: $distroname stick device: $stickdevice"
+echo "stick uuid: /dev/disk/by-uuid/$stickuuid stick partition: $stickpart"
+if [[ ! -f $liveusbgui ]]; then
+	are_you_sure "continue ?" "y" "n"
+fi
+if [[ $distroname == isohybrid ]];then
+	try_cp_with_progress "$1" "$2"
+else
+	mkdir $isomount $stickmount &>/dev/null
+	if ! mount $2 $stickmount &>/dev/null; then
+		echo "unable to mount the usb stick partition"
+		exit 1
+	fi
+	if [[ -e $stickmount/$isoname ]];then
+		isopath=$stickmount/$isoname
+	else
+		isopath=$iso_symlink
+	fi
+	if [[ -f $stickmount/fatstick ]]; then
+		echo "the stick is already bootable stick"
+		if ! grep -q $isonameshort $grubcfgpath; then
+			echo "adding new image to boot menu"
+			cfg_setup
+			add_menu_section
+		fi
+	else
+		grub2_stuff
+		echo "creating menu entries"
+		create_grub_cfg
+		add_menu_section
+		umount $stickmount &>/dev/null || true
+		umount $stickdevpart &>/dev/null || true
+		umount $isopath &>/dev/null || true
+	fi
+	touch $stickmount/fatstick
+	if [[ ! -f $stickmount/$isoname ]]; then
+		echo "copying $isoname to usb stick"
+		try_cp_with_progress "$1" "$stickmount/$isoname"
+	else
+		echo "using existing $isoname on the stick"
+	fi
+	thisscript=$(readlink -f $0)
+	cp $thisscript $stickmount/ &>/dev/null || true
+fi
+clean_up
+
