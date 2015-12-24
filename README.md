@@ -38,6 +38,45 @@ live-fat-stick
 	openSUSE users can install it via 1-click from here:
 	http://software.opensuse.org/package/live-fat-stick
 
+live-grub-stick
+==============
+	Create multi boot USB stick/hard disk with whole iso/s on vfat/fat32 partition
+	keeping existing data untouched. This tool uses grub2 instead of syslinux to
+	achieve the same goal.
+
+	Note: File size greater than 4G is not usable on vfat/fat32 partition so the
+	live CD/DVD iso file should not exceed this limit.
+
+	Note2: Install 32bit/x86 iso on the stick first if creating multiboot with both
+	x86 and x86_64 arch images.
+
+	Note3: Requires: grub2, fuseiso and dd_rescue/ddrescue installed on the system running this.
+
+	Run this command as root (su -, not sudo)
+                live-grub-stick isopath stickpartition
+	e.g.: 
+                live-grub-stick /home/geeko/openSUSE-Edu-li-f-e-12.2-1-i686.iso /dev/sdXY
+
+	To add various distribution iso to the stick, run the following:
+                For openSUSE    : live-grub-stick --suse /path/to/openSUSE-filename.iso /dev/sdXY
+                For Ubuntu      : live-grub-stick --ubuntu /path/to/ubuntu-filename.iso /dev/sdXY
+                For Mint        : live-grub-stick --mint /path/to/mint-filename.iso /dev/sdXY
+                For Fedora      : live-grub-stick --fedora /path/to/fedora-filename.iso /dev/sdXY
+
+                For isohybrid   : live-grub-stick --isohybrid /path/to/isohybridimage.iso /dev/sdX
+
+	isopath should be full absolute path of iso image and the device should be 
+	actual partition on the stick like /dev/sdb1, /dev/sdc1,/dev/sdc2...
+
+	The stick partition has to be in a format supported by grub2 and the OS image if the image
+	is not isohybrid.
+
+	Please note that using isohybrid option will remove all existing data on the USB device
+	and create new partitions.
+
+	Run live-grub-stick -l(or --list) to list the possible usb storage devices available.
+
+
 live-usb-gui
 ==============
 	Simple zenity/kdialog based GUI that runs live-fat-stick script
