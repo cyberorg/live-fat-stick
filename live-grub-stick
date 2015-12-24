@@ -247,7 +247,7 @@ cfg_setup() {
 		else
 			vmlinuzfile=/casper/vmlinuz.efi
 		fi
-		appendsection="linux (loop)/$vmlinuzfile boot=casper iso-scan/filename=/$isoname"
+		appendsection="linux (loop)/$vmlinuzfile boot=casper iso-scan/filename=/$isoname quiet splash"
 		appendsection2="initrd (loop)/casper/initrd.lz"
 	fi
 	if [[ $distroname == fedora ]]; then
