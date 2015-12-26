@@ -382,9 +382,6 @@ else
 			add_menu_section
 		fi
 	else
-		umount $stickmount &>/dev/null || true
-		umount $stickdevpart &>/dev/null || true
-		umount $isopath &>/dev/null || true
 		syslinux_stuff
 		echo "creating menu entries"
 		create_syslinux_cfg
