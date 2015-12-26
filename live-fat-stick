@@ -57,7 +57,9 @@ clean_up () {
 	fi
 	if [[ -f $liveusbgui ]]; then
 		rm $liveusbgui &>/dev/null 
-		rm "$iso_symlink"
+	fi
+	if [[ -h $iso_symlink ]]; then
+		rm "$iso_symlink" &>/dev/null
 	fi
 }
 trap "clean_up user_killed" SIGINT SIGTERM
