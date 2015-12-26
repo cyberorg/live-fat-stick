@@ -41,7 +41,12 @@ umount_everything () {
 			sleep 2
 		done
 		rmdir $stickmount &>/dev/null || echo "unable to remove $stickmount, please remove manually"
-		rm $iso_symlink &>/dev/null
+                if [[ -f $liveusbgui ]]; then
+                        rm $liveusbgui &>/dev/null
+                fi
+                if [[ -h $iso_symlink ]]; then
+                        rm "$iso_symlink" &>/dev/null
+                fi
 	fi
 }
 clean_up () {
@@ -54,12 +59,6 @@ clean_up () {
 		umount_everything
 		echo "Your bootable usb stick is now ready"
 		echo "have a lot of fun..."
-	fi
-	if [[ -f $liveusbgui ]]; then
-		rm $liveusbgui &>/dev/null 
-	fi
-	if [[ -h $iso_symlink ]]; then
-		rm "$iso_symlink" &>/dev/null
 	fi
 }
 trap "clean_up user_killed" SIGINT SIGTERM
