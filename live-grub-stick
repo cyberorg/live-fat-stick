@@ -41,7 +41,7 @@ umount_everything () {
 			sleep 2
 		done
 		rmdir $stickmount &>/dev/null || echo "unable to remove $stickmount, please remove manually"
-		rm $isopath &>/dev/null
+		rm $iso_symlink &>/dev/null
 	fi
 }
 clean_up () {
