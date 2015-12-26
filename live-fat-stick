@@ -86,6 +86,7 @@ need_help() {
                 For Ubuntu      : live-fat-stick --ubuntu /path/to/ubuntu-filename.iso /dev/sdXY
                 For Mint        : live-fat-stick --mint /path/to/mint-filename.iso /dev/sdXY
                 For Fedora      : live-fat-stick --fedora /path/to/fedora-filename.iso /dev/sdXY
+                For iPXE        : live-fat-stick --ipxe /path/to/ipxe.iso /dev/sdXY
 
                 For isohybrid   : live-fat-stick --isohybrid /path/to/isohybridimage.iso /dev/sdX
 
@@ -123,8 +124,11 @@ while [ $# -gt 2 ]; do
 		--isohybrid)
 		distroname=isohybrid
 		;;
+                --ipxe)
+                distroname=ipxe
+                ;;
                 *)
-                echo "invalid arg -- $1"
+                echo "invalid arg -- $1, check spelling or if the distribution is supported"
 		need_help
                 exit 1
                 ;;
@@ -170,13 +174,9 @@ if [[ ! -e $2 ]]; then
         echo "Device $2 does not exist"
         exit 1
 fi
-distroname=${distroname:-suse}
-if [[ $distroname != suse ]] && [[ $distroname != ubuntu ]] && [[ $distroname != fedora ]] && [[ $distroname != isohybrid ]]; then
-        echo "this distribution's iso is currently not supported, patch welcome"
-        exit 1
-fi
 
 #variables
+distroname=${distroname:-suse}
 isomount=$(mktemp -d)
 isopath=$(readlink -f "$1")
 iso_symlink=$(mktemp) ; rm $iso_symlink ; ln -s "$isopath" $iso_symlink
@@ -264,6 +264,10 @@ copy_kernel_initrd () {
 		mv "$stickmount/$isonameshort"/isolinux/initrd0.img $syslinuxpath/initrd-$isonameshort
 		mv "$stickmount/$isonameshort"/isolinux/vmlinuz0 $syslinuxpath/linux-$isonameshort
 		appendsection="append initrd=initrd-$isonameshort root=UUID=$stickuuid rootfstype=vfat rd.live.dir=/$isonameshort/LiveOS/ ro rd.live.image rd.luks=0 rd.md=0 rd.dm=0 quiet rhgb"
+	fi
+	if [[ $distroname == ipxe ]]; then
+		mkdir -p $syslinuxpath
+		cp $isomount/ipxe.krn $syslinuxpath/linux-$isonameshort
 	fi
 	umount $isomount &>/dev/null
 }

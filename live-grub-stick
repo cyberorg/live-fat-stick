@@ -86,6 +86,7 @@ need_help() {
                 For Ubuntu      : live-grub-stick --ubuntu /path/to/ubuntu-filename.iso /dev/sdXY
                 For Mint        : live-grub-stick --mint /path/to/mint-filename.iso /dev/sdXY
                 For Fedora      : live-grub-stick --fedora /path/to/fedora-filename.iso /dev/sdXY
+                For iPXE        : live-grub-stick --ipxe /path/to/ipxe.iso /dev/sdXY
 
                 For isohybrid   : live-grub-stick --isohybrid /path/to/isohybridimage.iso /dev/sdX
 
@@ -123,8 +124,11 @@ while [ $# -gt 2 ]; do
 		--isohybrid)
 		distroname=isohybrid
 		;;
+                --ipxe)
+                distroname=ipxe
+                ;;
                 *)
-                echo "invalid arg -- $1"
+                echo "invalid arg -- $1, check spelling or if the distribution is supported"
 		need_help
                 exit 1
                 ;;
@@ -170,13 +174,8 @@ if [[ ! -e $2 ]]; then
         echo "Device $2 does not exist"
         exit 1
 fi
-distroname=${distroname:-suse}
-if [[ $distroname != suse ]] && [[ $distroname != ubuntu ]] && [[ $distroname != fedora ]] && [[ $distroname != isohybrid ]]; then
-        echo "this distribution's iso is currently not supported, patch welcome"
-        exit 1
-fi
-
 #variables
+distroname=${distroname:-suse}
 isomount=$(mktemp -d)
 isopath=$(readlink -f "$1")
 iso_symlink=$(mktemp) ; rm $iso_symlink ; ln -s "$isopath" $iso_symlink
@@ -232,11 +231,11 @@ try_cp_with_progress () {
 cfg_setup() {
 	mount $stickdevpart $stickmount &>/dev/null
 	fuseiso $isopath $isomount &>/dev/null
+	if [[ -d $stickmount/boot ]];then
+		mkdir -p $stickmount/boot/
+	fi
 	if [[ $distroname == suse ]]; then
 		if [[ ! -f $stickmount/fatstick ]]; then
-			if [[ -d $stickmount/boot ]];then
-				mkdir -p $stickmount/boot
-			fi
 			echo "copying grub2 files to $stickmount/boot/"
 			cp -r $isomount/boot/grub2 $stickmount/boot/
 		fi
@@ -256,6 +255,9 @@ cfg_setup() {
 		appendsection="linux (loop)/isolinux/vmlinuz0 iso-scan/filename=/$isoname root=LABEL=$isolabel rootfstype=auto ro rd.live.image rd.luks=0 rd.md=0 rd.dm=0 quiet rhgb"
 		appendsection2="initrd (loop)/isolinux/initrd0.img"
 	fi
+	if [[ $distroname == ipxe ]]; then
+		appendsection="linux16 (loop)/ipxe.krn"
+	fi
 	umount $isomount &>/dev/null
 }
 grub2_stuff () {
@@ -267,16 +269,20 @@ grub2_stuff () {
 	cfg_setup
 }
 add_harddisk_section () {
-	if ! grep -q localboot $grubcfgpath; then
+	if ! grep -q harddisk $grubcfgpath; then
 	        cat <<EOF >>$grubcfgpath
 
-label harddisk
-  	localboot 0x80
+menuentry 'Boot from harddisk' {
+	set root=(hd1)
+	chainloader +1
+}
+
+menuentry 'Reboot' {
+	reboot
+}
+
 EOF
 	fi
-}
-add_menu_section_suse () {
-echo nothing
 }
 create_grub_cfg() {
         cat <<EOF >$grubcfgpath
@@ -349,6 +355,7 @@ menuentry "$isonameshort" --class $distroname --class os {
 }
 
 EOF
+add_harddisk_section
 }
 
 echo "Please make sure the following information is correct:"
