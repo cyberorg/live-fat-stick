@@ -23,6 +23,8 @@ live-fat-stick
 		For Ubuntu	: live-fat-stick --ubuntu /path/to/ubuntu-filename.iso /dev/sdXY
 		For Mint	: live-fat-stick --mint /path/to/mint-filename.iso /dev/sdXY
 		For Fedora	: live-fat-stick --fedora /path/to/fedora-filename.iso /dev/sdXY
+		For iPXE        : live-fat-stick --ipxe /path/to/ipxe.iso /dev/sdXY
+
 		For isohybrid	: live-fat-stick --isohybrid /path/to/isohybridimage.iso /dev/sdX
 
 	isopath should be full absolute path of iso image and the device should be 
@@ -62,6 +64,7 @@ live-grub-stick
                 For Ubuntu      : live-grub-stick --ubuntu /path/to/ubuntu-filename.iso /dev/sdXY
                 For Mint        : live-grub-stick --mint /path/to/mint-filename.iso /dev/sdXY
                 For Fedora      : live-grub-stick --fedora /path/to/fedora-filename.iso /dev/sdXY
+		For iPXE        : live-grub-stick --ipxe /path/to/ipxe.iso /dev/sdXY
 
                 For isohybrid   : live-grub-stick --isohybrid /path/to/isohybridimage.iso /dev/sdX
 

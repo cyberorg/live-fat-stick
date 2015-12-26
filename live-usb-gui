@@ -46,7 +46,7 @@ fileselecttitle="Select distribution iso file"
 fileselectpath="/"
 fileselectfilter="*iso"
 usbselecttitle="Select the target USB device"
-distributionlist="suse fedora mint ubuntu isohybrid"
+distributionlist="suse fedora mint ubuntu ipxe isohybrid"
 distrotitle="Select the distribution of the iso"
 usbdevicelist=$(for i in `echo $(for i in $(find /dev/disk/by-path/ |grep usb); do readlink -f $i;done)`
 	do
@@ -100,6 +100,9 @@ case $distroname in
 	;;
         isohybrid)
         option="isohybrid"
+        ;;
+        ipxe)
+        option="--ipxe"
         ;;
 esac
 
