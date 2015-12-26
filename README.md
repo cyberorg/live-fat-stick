@@ -79,6 +79,9 @@ live-grub-stick
 
 	Run live-grub-stick -l(or --list) to list the possible usb storage devices available.
 
+        openSUSE users can install it via 1-click from here:
+        http://software.opensuse.org/package/live-grub-stick
+
 
 live-usb-gui
 ==============
@@ -105,8 +108,8 @@ live-usb-gui
 
 
 It is possible to boot multiple distributions and iso images from same device, 
-should work with all recent openSUSE or Ubuntu live iso images. Fedora iso is
-not copied but is extracted as it does not support booting from iso.
+should work with all recent distributions' live iso images. Fedora iso is
+not copied when live-fat-stick is used but is extracted, when live-grub-stick is used all isos are copied. 
 
 You are welcome to fork and submit patches for your distro if it is not supported by 
 this script :)
