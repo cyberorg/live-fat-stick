@@ -389,9 +389,6 @@ else
 		echo "creating menu entries"
 		create_grub_cfg
 		add_menu_section
-		umount $stickmount &>/dev/null || true
-		umount $stickdevpart &>/dev/null || true
-		umount $isopath &>/dev/null || true
 	fi
 	touch $stickmount/fatstick
 	if [[ ! -f $stickmount/$isoname ]]; then
