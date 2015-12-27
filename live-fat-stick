@@ -34,7 +34,7 @@ umount_everything () {
 	if [[ $distroname != isohybrid ]]; then
                 umount $isomount &>/dev/null             
                 umount $stickdevpart &>/dev/null
-		rm -rf $isomount &>/dev/null
+		rmdir $isomount &>/dev/null || echo "unable to remove $isomount, please remove manually"
                 umount $stickmount &>/dev/null
 		while $(mount | grep $stickmount &>/dev/null); do
 			umount $stickdevpart &>/dev/null
@@ -228,7 +228,6 @@ try_cp_with_progress () {
 	fi
 }
 copy_kernel_initrd () {
-	mount $stickdevpart $stickmount &>/dev/null
 	fuseiso $isopath $isomount &>/dev/null
 	echo "copying kernel and initrd from iso image to $stickdevpart"
 	if [[ $distroname == suse ]]; then
@@ -364,14 +363,25 @@ if [[ $distroname == isohybrid ]];then
 	try_cp_with_progress "$1" "$2"
 else
 	mkdir $isomount $stickmount &>/dev/null
+	if mount | grep $stickdevpart &>/dev/null; then
+		if ! umount $stickdevpart &>/dev/null; then
+			echo "$stickdevpart in use, please umount it before continuing"
+			exit 1
+		fi
+	fi
 	if ! mount $2 $stickmount &>/dev/null; then
 		echo "unable to mount the usb stick partition"
 		exit 1
 	fi
 	if [[ -e $stickmount/$isoname ]];then
 		isopath=$stickmount/$isoname
+		echo "using existing $isoname on the stick"
 	else
 		isopath=$iso_symlink
+		if [[ $distroname != fedora ]]; then
+			echo "copying $isoname to usb stick"
+			try_cp_with_progress "$1" "$stickmount/$isoname"
+		fi
 	fi
 	if [[ -f $stickmount/fatstick ]]; then
 		echo "the stick is already bootable stick"
@@ -387,14 +397,6 @@ else
 		add_menu_section
 	fi
 	touch $stickmount/fatstick
-	if [[ $distroname != fedora ]]; then
-		if [[ ! -f $stickmount/$isoname ]]; then
-			echo "copying $isoname to usb stick"
-			try_cp_with_progress "$1" "$stickmount/$isoname"
-		else
-			echo "using existing $isoname on the stick"
-		fi
-	fi
 	thisscript=$(readlink -f $0)
 	cp $thisscript $stickmount/ &>/dev/null || true
 fi
