@@ -42,12 +42,13 @@ live-fat-stick
 
 live-grub-stick
 ==============
-	Create multi boot USB stick/hard disk with whole iso/s on vfat/fat32 partition
+	Create multi boot USB stick/hard disk with whole iso/s on any partition supported by grub2
 	keeping existing data untouched. This tool uses grub2 instead of syslinux to
-	achieve the same goal.
+	achieve the same goal as live-fat-stick.
 
 	Note: File size greater than 4G is not usable on vfat/fat32 partition so the
-	live CD/DVD iso file should not exceed this limit.
+	live CD/DVD iso file should not exceed this limit. Use any other grub2 supported filesystem
+	if the iso file exceeds this limit.
 
 	Note2: Install 32bit/x86 iso on the stick first if creating multiboot with both
 	x86 and x86_64 arch images.
@@ -60,13 +61,13 @@ live-grub-stick
                 live-grub-stick /home/geeko/openSUSE-Edu-li-f-e-12.2-1-i686.iso /dev/sdXY
 
 	To add various distribution iso to the stick, run the following:
-                For openSUSE    : live-grub-stick --suse /path/to/openSUSE-filename.iso /dev/sdXY
-                For Ubuntu      : live-grub-stick --ubuntu /path/to/ubuntu-filename.iso /dev/sdXY
-                For Mint        : live-grub-stick --mint /path/to/mint-filename.iso /dev/sdXY
-                For Fedora      : live-grub-stick --fedora /path/to/fedora-filename.iso /dev/sdXY
+		For openSUSE    : live-grub-stick --suse /path/to/openSUSE-filename.iso /dev/sdXY
+		For Ubuntu      : live-grub-stick --ubuntu /path/to/ubuntu-filename.iso /dev/sdXY
+		For Mint        : live-grub-stick --mint /path/to/mint-filename.iso /dev/sdXY
+		For Fedora      : live-grub-stick --fedora /path/to/fedora-filename.iso /dev/sdXY
 		For iPXE        : live-grub-stick --ipxe /path/to/ipxe.iso /dev/sdXY
 
-                For isohybrid   : live-grub-stick --isohybrid /path/to/isohybridimage.iso /dev/sdX
+		For isohybrid   : live-grub-stick --isohybrid /path/to/isohybridimage.iso /dev/sdX
 
 	isopath should be full absolute path of iso image and the device should be 
 	actual partition on the stick like /dev/sdb1, /dev/sdc1,/dev/sdc2...
