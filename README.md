@@ -115,4 +115,6 @@ not copied when live-fat-stick is used but is extracted, when live-grub-stick is
 You are welcome to fork and submit patches for your distro if it is not supported by 
 this script :)
 
+Cross platform alternative with GUI to these tools: https://github.com/mbusb/multibootusb
+
 Have a lot of fun...
