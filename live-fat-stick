@@ -203,7 +203,7 @@ if [[ ! -h /dev/disk/by-uuid/$stickuuid ]]; then
 fi
 
 if echo $isoname | grep -qi "Li-f-e"; then
-	isonameshort=openSUSE-Edu-Li-f-e
+	isonameshort=Li-f-e
 fi
 are_you_sure ()  {
         echo  -n "$1 [$2/$3]? "
