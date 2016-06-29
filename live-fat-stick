@@ -252,7 +252,7 @@ copy_kernel_initrd () {
 			cp $isomount/casper/vmlinuz.efi $syslinuxpath/linux-$isonameshort
 		fi
 		cp $isomount/casper/initrd.lz $syslinuxpath/initrd-$isonameshort
-		appendsection="append initrd=initrd-$isonameshort boot=casper iso-scan/filename=/$isoname"
+		appendsection="append initrd=initrd-$isonameshort boot=casper iso-scan/filename=/$isoname quiet splash"
 	fi
 	if [[ $distroname == fedora ]]; then
 		mkdir -p "$syslinuxpath"
