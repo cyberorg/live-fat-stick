@@ -92,6 +92,10 @@ live-usb-gui
 	Copy live-usb-gui.desktop to /usr/share/applications/ and update-desktop-database -q
 	this should make Live USB GUI show up in desktop menu. 
 
+	On Ubuntu or distributions that do not have xdg-su, change Exec=xdg-su -c "live-usb-gui"
+	to Exec=gksudo "live-usb-gui" in live-usb-gui.desktop. Use any xdg-su equivalent command
+	available.
+
 	Run this command without any options as root from terminal (su -, not sudo) or
 	Alt+F2 and xdg-su -c "xterm -e live-usb-gui"
 
