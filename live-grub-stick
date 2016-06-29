@@ -157,8 +157,13 @@ if [[ x"$2" == x ]]; then
 	echo "$(for i in $(find /dev/disk/by-path/ |grep usb); do readlink -f $i;done)"
 	exit 1
 fi
-if [[ ! -e $(which grub2-install) ]]; then
-	echo "grub2-install command not found, please install grub2 package"
+if lsb_release -i | grep -qi suse; then
+	grubinstall='grub2-install'
+else
+	grubinstall='grub-install'
+fi
+if [[ ! -e $(which $grubinstall) ]]; then
+	echo "$grubinstall command not found, please install grub2 package"
 	exit 1
 fi
 if [[ ! -e $(which fuseiso) ]]; then
@@ -187,8 +192,6 @@ isonameshort=$(echo $isoname | cut -d "-" -f 1,2,3 | tr " " _)
 stickuuid=$(blkid -s UUID -o value $2)
 isolabel=$(blkid -s LABEL -o value $1)
 stickpart=$(basename $2 | sed 's/[a-z]*//g')
-grub2path=$stickmount/boot/grub2
-grubcfgpath=$grub2path/grub.cfg
 stickdevpart=$2
 liveusbgui=/tmp/liveusbgui
 benice="nice ionice -c3"
@@ -229,14 +232,25 @@ try_cp_with_progress () {
 }
 cfg_setup() {
 	fuseiso $isopath $isomount &>/dev/null
-	if [[ -d $stickmount/boot ]];then
-		mkdir -p $stickmount/boot/
-	fi
-	if [[ $distroname == suse ]]; then
-		if [[ ! -f $stickmount/grubstick ]]; then
-			echo "copying grub2 files to $stickmount/boot/"
-			cp -r $isomount/boot/grub2 $stickmount/boot/
+        if [[ -d $stickmount/boot/grub2 ]]; then
+                grub2path=$stickmount/boot/grub2
+                grub2pathrealusb=/boot/grub2
+        else
+                grub2path=$stickmount/boot/grub
+                grub2pathrealusb=/boot/grub
+        fi
+        grubcfgpath=$grub2path/grub.cfg
+        if [[ ! -f $stickmount/grubstick ]]; then
+                echo "copying grub files to $stickmount/boot/"
+		if [[ -d "$isomount/boot/grub2" ]];then
+			cp -r $isomount/boot/grub2/* $grub2path/
+		elif [[ -d "$isomount/boot/grub" ]];then
+			cp -r $isomount/boot/grub/* $grub2path/
+		else
+	                cp -r $grub2pathreal/* $grub2path/
 		fi
+        fi
+	if [[ $distroname == suse ]]; then
 		appendsection="\$linux (loop)/boot/x86_64/loader/linux isofrom=/dev/disk/by-uuid/$stickuuid:/$isoname isofrom_device=/dev/disk/by-uuid/$stickuuid isofrom_system=/$isoname loader=syslinux splash=silent quiet showopts"
 		appendsection2="\$initrd (loop)/boot/x86_64/loader/initrd"
 	fi
@@ -256,12 +270,16 @@ cfg_setup() {
 	if [[ $distroname == ipxe ]]; then
 		appendsection="linux16 (loop)/ipxe.krn"
 	fi
+        if ! grep -q $isonameshort $grubcfgpath | grep -qi menuentry; then
+                 echo "adding new image to boot menu"
+                 add_menu_section
+        fi
 	umount $isomount &>/dev/null
 }
 grub2_stuff () {
 	echo "installing grub2 on $stickdevice"
 	mkdir -p $stickmount/boot
-	grub2-install --target=i386-pc --boot-directory=$stickmount/boot $stickdevice
+	$grubinstall --target=i386-pc --boot-directory=$stickmount/boot $stickdevice
 	echo "setting $stickdevice partition $stickpart active"
 	parted $stickdevice set $stickpart boot on &>/dev/null
 	cfg_setup
@@ -283,6 +301,8 @@ EOF
 	fi
 }
 create_grub_cfg() {
+cp /usr/share/grub*/unicode.pf2 $grub2path/ 2>/dev/null
+export themename=$(echo /$grub2path/themes/*|rev | cut -d / -f1|rev)
         cat <<EOF >$grubcfgpath
 insmod fat
 insmod ext2
@@ -317,24 +337,16 @@ else
     set initrd=initrd
 fi
 set default=0
-set font=/boot/grub2/fonts/unicode.pf2
-if loadfont \$font ;then
-	set gfxmode=auto
-	insmod gfxterm
-	insmod gfxmenu
-	terminal_input gfxterm
-	if terminal_output gfxterm; then true; else
-		terminal gfxterm
-	fi
+set font=$grub2pathrealusb/unicode.pf2
+set gfxmode=auto
+insmod gfxterm
+insmod gfxmenu
+terminal_input gfxterm
+if terminal_output gfxterm; then true; else
+	terminal gfxterm
 fi
-if loadfont /boot/grub2/themes/openSUSE/ascii.pf2;then
-	loadfont /boot/grub2/themes/openSUSE/DejaVuSans-Bold14.pf2
-	loadfont /boot/grub2/themes/openSUSE/DejaVuSans10.pf2
-	loadfont /boot/grub2/themes/openSUSE/DejaVuSans12.pf2
-	loadfont /boot/grub2/themes/openSUSE/ascii.pf2
-	set theme=/boot/grub2/themes/openSUSE/theme.txt
-	background_image -m stretch /boot/grub2/themes/openSUSE/background.png
-fi
+set theme=$grub2pathrealusb/themes/$themename/theme.txt
+export theme
 set timeout=10
 
 EOF
@@ -384,13 +396,14 @@ else
 		echo "copying $isoname to usb stick"
 		try_cp_with_progress "$1" "$stickmount/$isoname"
 	fi
+        if [[ -d /boot/grub2 ]]; then
+                grub2pathreal=/boot/grub2
+	else
+		grub2pathreal=/boot/grub
+	fi
 	if [[ -f $stickmount/grubstick ]]; then
 		echo "the stick is already bootable stick"
-		if ! grep -q $isonameshort $grubcfgpath; then
-			echo "adding new image to boot menu"
-			cfg_setup
-			add_menu_section
-		fi
+		cfg_setup
 	else
 		grub2_stuff
 		echo "creating menu entries"
