@@ -275,6 +275,8 @@ syslinux_stuff () {
 	echo "replacing mbr of $stickdevice with syslinux mbr.bin"
 	if [[ -e /usr/share/syslinux/mbr.bin ]]; then
 		dd if=/usr/share/syslinux/mbr.bin of=$stickdevice &>/dev/null
+	elif [[ -e /usr/lib/syslinux/mbr/mbr.bin ]]; then
+                dd if=/usr/lib/syslinux/mbr/mbr.bin of=$stickdevice &>/dev/null
 	else
 		dd if=/usr/lib/syslinux/mbr.bin of=$stickdevice &>/dev/null
 	fi
@@ -323,9 +325,11 @@ default $isonameshort
 EOF
 	else
 	if [[ -e /usr/share/syslinux/vesamenu.c32 ]]; then
-		cp /usr/share/syslinux/vesamenu.c32 $syslinuxpath/ || echo "/usr/share/syslinux/vesamenu.c32 is missing or cannot be copied"
+		cp /usr/share/syslinux/vesamenu.c32 $syslinuxpath/ || echo "vesamenu.c32 cannot be copied"
+	elif [[ -e /usr/lib/syslinux/modules/bios/vesamenu.c32 ]]; then
+                cp /usr/lib/syslinux/modules/bios/* $syslinuxpath/ || echo "vesamenu.c32 cannot be copied"
 	else
-		cp /usr/lib/syslinux/vesamenu.c32 $syslinuxpath/ || echo "/usr/lib/syslinux/vesamenu.c32 is missing or cannot be copied"
+		cp -r /usr/lib/syslinux/* $syslinuxpath/ || echo "vesamenu.c32 is missing or cannot be copied"
 	fi
                 cat <<EOF >$syslinuxpath/syslinux.cfg
 default vesamenu.c32
