@@ -30,9 +30,9 @@ else
 	which zenity &>/dev/null && popup=zenity
 fi
 popup=${popup:-zenity}
-
+scriptorun=${scriptorun:-live-fat-stick}
 which $popup &>/dev/null || echo "$popup not found, please install to use this tool"
-which live-fat-stick &>/dev/null || echo "live-fat-stick script not found in PATH, please install it and make it executable"
+which $scriptorun &>/dev/null || echo "$scriptorun script not found in PATH, please install it and make it executable"
 
 export liveusbgui=/tmp/liveusbgui
 touch /tmp/liveusbgui
@@ -48,6 +48,7 @@ fileselectfilter="*iso"
 usbselecttitle="Select the target USB device"
 distributionlist="suse fedora mint ubuntu ipxe isohybrid"
 distrotitle="Select the distribution of the iso"
+scriptlist="live-grub-stick live-fat-stick"
 usbdevicelist=$(for i in `echo $(for i in $(find /dev/disk/by-path/ |grep usb); do readlink -f $i;done)`
 	do
         #	if [[ $(blkid -s TYPE -o value $i) == vfat ]];then
@@ -63,6 +64,10 @@ distributionlistkd=$(for distro in $distributionlist; do
 	printf "%s %s %s" $distro $distro off
 	printf "\n"    
 done)
+scriptlistkd=$(for script in $scriptlist; do
+        printf "%s %s %s" $script $script off
+        printf "\n"
+done)
 check_variable () {
 	if [ ! "$1" ]; then
 		clean_up
@@ -72,17 +77,21 @@ check_variable () {
 if [[ $popup == zenity ]]; then
 	sourceiso=$(zenity --file-selection --title="$fileselecttitle" --file-filter="$fileselectfilter")
 	check_variable $sourceiso
-	usbdevice=$(zenity --list --title="$usbselecttitle" --column="USB device" $usbdevicelist)
+	usbdevice=$(zenity --list --radiolist --title="$usbselecttitle" --column="USB device" $usbdevicelist)
 	check_variable $usbdevice
-	distroname=$(zenity --list --title="distrotitle" --column="Distribution:" $distributionlist)
+	distroname=$(zenity --list --radiolist --title="distrotitle" --column="Distribution:" $distributionlist)
 	check_variable $distroname
+	scriptorun=$(zenity --list --radiolist --title="Select script to run" --column="Scripts:" $scriptlist)
+        check_variable $scriptorun
 else
 	sourceiso=$(kdialog --title "$fileselecttitle" --getopenfilename "$fileselectpath" "$fileselectfilter")
 	check_variable $sourceiso
-	usbdevice=$(kdialog --separate-output --title "$usbselecttitle" --checklist "USB device:" $usbdevicelistkd)
+	usbdevice=$(kdialog --separate-output --title "$usbselecttitle" --radiolist "USB device:" $usbdevicelistkd)
 	check_variable $usbdevice
-	distroname=$(kdialog --separate-output --title "$distrotitle" --checklist "Distribution:" $distributionlistkd)
+	distroname=$(kdialog --separate-output --title "$distrotitle" --radiolist "Distribution:" $distributionlistkd)
 	check_variable $distroname
+        scriptorun=$(kdialog --separate-output --title "Select script to run" --radiolist "Scripts:" $scriptlistkd)
+        check_variable $scriptorun
 fi
 
 case $distroname in
@@ -128,9 +137,9 @@ fi
 
 if [[ $option == isohybrid ]]; then
 	usbdev=$(echo $usbdevice | sed 's/[0-9]*//g')
-	xterm -e "live-fat-stick --isohybrid $sourceiso $usbdev"
+	xterm -e "$scriptorun --isohybrid $sourceiso $usbdev"
 else
-	xterm -e "live-fat-stick $option $sourceiso $usbdevice"
+	xterm -e "$scriptorun $option $sourceiso $usbdevice"
 fi
 
 if [ $? != 0 ]; then
