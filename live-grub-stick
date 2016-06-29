@@ -221,7 +221,7 @@ try_cp_with_progress () {
         if [ -x /usr/bin/dd_rescue ]; then
         	$benice dd_rescue -A -b 4M -y 4M "$iso_symlink" "$2"
 	elif [ -x /usr/bin/ddrescue ]; then
-		$benice ddrescue --force --block-size=4M "$iso_symlink" "$2"
+		$benice ddrescue --force -b 4M "$iso_symlink" "$2"
 	else
 		echo "dd_rescue or ddrescue not found, please install one of them, using dd for now"
 		$benice dd if="$iso_symlink" of="$2" bs=4M
