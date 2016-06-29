@@ -77,11 +77,11 @@ check_variable () {
 if [[ $popup == zenity ]]; then
 	sourceiso=$(zenity --file-selection --title="$fileselecttitle" --file-filter="$fileselectfilter")
 	check_variable $sourceiso
-	usbdevice=$(zenity --list --radiolist --title="$usbselecttitle" --column="USB device" $usbdevicelist)
+	usbdevice=$(zenity --list --title="$usbselecttitle" --column="USB device" $usbdevicelist)
 	check_variable $usbdevice
-	distroname=$(zenity --list --radiolist --title="distrotitle" --column="Distribution:" $distributionlist)
+	distroname=$(zenity --list --title="distrotitle" --column="Distribution:" $distributionlist)
 	check_variable $distroname
-	scriptorun=$(zenity --list --radiolist --title="Select script to run" --column="Scripts:" $scriptlist)
+	scriptorun=$(zenity --list --title="Select script to run" --column="Scripts:" $scriptlist)
         check_variable $scriptorun
 else
 	sourceiso=$(kdialog --title "$fileselecttitle" --getopenfilename "$fileselectpath" "$fileselectfilter")
