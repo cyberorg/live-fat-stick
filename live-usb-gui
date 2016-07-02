@@ -46,7 +46,7 @@ fileselecttitle="Select distribution iso file"
 fileselectpath="/"
 fileselectfilter="*iso"
 usbselecttitle="Select the target USB device"
-distributionlist="suse fedora mint ubuntu ipxe isohybrid"
+distributionlist="suse suse-persistent fedora mint ubuntu ubuntu-persistent ipxe isohybrid"
 distrotitle="Select the distribution of the iso"
 scriptlist="live-grub-stick live-fat-stick"
 usbdevicelist=$(for i in `echo $(for i in $(find /dev/disk/by-path/ |grep usb); do readlink -f $i;done)`
@@ -104,6 +104,12 @@ case $distroname in
 	ubuntu)
 	option="--ubuntu"
 	;;
+        suse-persistent)
+        option="--suse-persistent"
+        ;;
+        ubuntu-persistent)
+        option="--ubuntu-persistent"
+        ;;
 	mint)
 	option="--ubuntu"
 	;;

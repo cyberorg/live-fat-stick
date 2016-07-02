@@ -82,7 +82,9 @@ need_help() {
 
         To add various distribution iso to the stick, run the following:
                 For openSUSE    : live-fat-stick --suse /path/to/openSUSE-filename.iso /dev/sdXY
-                For Ubuntu      : live-fat-stick --ubuntu /path/to/ubuntu-filename.iso /dev/sdXY
+                For openSUSE with persistence    : live-fat-stick --suse-persistent /path/to/openSUSE-filename.iso /dev/sdXY
+                For Ubuntu clones     : live-fat-stick --ubuntu /path/to/ubuntu-filename.iso /dev/sdXY
+                For Ubuntu clones with persistence      : live-fat-stick --ubuntu-persistent /path/to/ubuntu-filename.iso /dev/sdXY
                 For Mint        : live-fat-stick --mint /path/to/mint-filename.iso /dev/sdXY
                 For Fedora      : live-fat-stick --fedora /path/to/fedora-filename.iso /dev/sdXY
                 For iPXE        : live-fat-stick --ipxe /path/to/ipxe.iso /dev/sdXY
@@ -120,6 +122,14 @@ while [ $# -gt 2 ]; do
                 --ubuntu|--mint)
                 distroname=ubuntu
                 ;;
+                --suse-persistent|--opensuse-persistent)
+                distroname=suse
+		PERSISTENT_IMAGE=true
+                ;;
+                --ubuntu-persistent|--mint-persistent)
+                distroname=ubuntu
+                PERSISTENT_IMAGE=true
+                ;;                
 		--isohybrid)
 		distroname=isohybrid
 		;;
@@ -165,6 +175,10 @@ if [[ ! -e /usr/bin/fuseiso ]]; then
         echo "fuseiso not found, please install fuseiso package"
         exit 1
 fi
+if [[ ! -e $(which qemu-img) ]]; then
+       	echo "qemu-img not found, please install qemu-tools package"
+       	exit 1
+fi
 if [[ ! -e $1 ]]; then
 	echo "File $1 does not exist"
 	exit 1
@@ -192,6 +206,7 @@ syslinuxpath=$stickmount/boot/syslinux
 stickdevpart=$2
 liveusbgui=/tmp/liveusbgui
 benice="nice ionice -c3"
+cowsize=${cowsize:-500M}
 
 if [[ $isoname != $isonametr ]]; then
 	echo "removing space/s from iso name copied to the destination disk"
@@ -231,6 +246,14 @@ copy_kernel_initrd () {
 	fuseiso $isopath $isomount &>/dev/null
 	echo "copying kernel and initrd from iso image to $stickdevpart"
 	if [[ $distroname == suse ]]; then
+		if [[ $PERSISTENT_IMAGE == true ]]; then
+                        echo "Creating image file for persistent data"
+			if ! qemu-img create $stickmount/boot/$isonameshort-cowfile $cowsize &>/dev/null;then
+				echo "Can't create cow file"
+				clean_up
+			fi
+			persistopts="kiwi_cowdevice=/dev/disk/by-uuid/$stickuuid kiwi_cowsystem=/boot/$isonameshort-cowfile"
+		fi	
 		rm $stickmount/syslinux.cfg &>/dev/null
 		if [[ ! -f $stickmount/fatstick ]]; then
 			cp -r $isomount/boot $stickmount/
@@ -240,11 +263,22 @@ copy_kernel_initrd () {
 		fi
 		cp $isomount/boot/*/loader/linux $syslinuxpath/linux-$isonameshort
 		cp $isomount/boot/*/loader/initrd $syslinuxpath/initrd-$isonameshort
-		appendsection="append initrd=initrd-$isonameshort isofrom=/dev/disk/by-uuid/$stickuuid:/$isoname isofrom_device=/dev/disk/by-uuid/$stickuuid isofrom_system=/$isoname loader=syslinux splash=silent quiet showopts"
+		appendsection="append initrd=initrd-$isonameshort isofrom=/dev/disk/by-uuid/$stickuuid:/$isoname isofrom_device=/dev/disk/by-uuid/$stickuuid isofrom_system=/$isoname loader=syslinux splash=silent  $persistopts quiet showopts"
 		isolinux_msg="display isolinux.msg"
 		ui="ui gfxboot bootlogo isolinux.msg"
 	fi
 	if [[ $distroname == ubuntu ]]; then
+                if [[ $PERSISTENT_IMAGE == true ]]; then
+			mkdir -p $stickmount/$isonameshort
+                        echo "Creating image file for persistent data"
+                        if ! qemu-img create $stickmount/$isonameshort/casper-rw $cowsize &>/dev/null;then
+                                echo "Can't create cow file"
+                                clean_up
+                        fi
+			echo "Creating filesystem for persistent data"
+			mkfs.ext4 -F -O^has_journal -L casper-rw $stickmount/$isonameshort/casper-rw
+			persistopts="persistent persistent-path=/$isonameshort/"
+		fi
 		mkdir -p $syslinuxpath
 		if [[ -e $isomount/casper/vmlinuz ]]; then
 			cp $isomount/casper/vmlinuz $syslinuxpath/linux-$isonameshort
@@ -252,7 +286,7 @@ copy_kernel_initrd () {
 			cp $isomount/casper/vmlinuz.efi $syslinuxpath/linux-$isonameshort
 		fi
 		cp $isomount/casper/initrd.lz $syslinuxpath/initrd-$isonameshort
-		appendsection="append initrd=initrd-$isonameshort boot=casper iso-scan/filename=/$isoname quiet splash"
+		appendsection="append initrd=initrd-$isonameshort boot=casper iso-scan/filename=/$isoname  $persistopts quiet splash"
 	fi
 	if [[ $distroname == fedora ]]; then
 		mkdir -p "$syslinuxpath"

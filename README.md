@@ -9,7 +9,7 @@ live-fat-stick
 	Note2: Install 32bit/x86 iso on the stick first if creating multiboot with both
 	x86 and x86_64 arch images.
 
-	Note3: Requires: syslinux, fuseiso and dd_rescue/ddrescue installed on the system running this.
+	Note3: Requires: syslinux, fuseiso, qemu-img and dd_rescue/ddrescue installed on the system running this.
 
 	Copy live-fat-stick to /usr/bin/ and chmod +x /usr/bin/live-fat-stick
 
@@ -20,7 +20,9 @@ live-fat-stick
 
 	To add various distribution iso to the stick, run the following:
 		For openSUSE	: live-fat-stick --suse /path/to/openSUSE-filename.iso /dev/sdXY
-		For Ubuntu	: live-fat-stick --ubuntu /path/to/ubuntu-filename.iso /dev/sdXY
+                For openSUSE with persistence    : live-fat-stick --suse-persistent /path/to/openSUSE-filename.iso /dev/sdXY
+                For Ubuntu clones     : live-fat-stick --ubuntu /path/to/ubuntu-filename.iso /dev/sdXY
+                For Ubuntu clones with persistence      : live-grub-stick --ubuntu-persistent /path/to/ubuntu-filename.iso /dev/sdXY
 		For Mint	: live-fat-stick --mint /path/to/mint-filename.iso /dev/sdXY
 		For Fedora	: live-fat-stick --fedora /path/to/fedora-filename.iso /dev/sdXY
 		For iPXE        : live-fat-stick --ipxe /path/to/ipxe.iso /dev/sdXY
@@ -53,7 +55,7 @@ live-grub-stick
 	Note2: Install 32bit/x86 iso on the stick first if creating multiboot with both
 	x86 and x86_64 arch images.
 
-	Note3: Requires: grub2, fuseiso and dd_rescue/ddrescue installed on the system running this.
+	Note3: Requires: grub2, fuseiso, qemu-img and dd_rescue/ddrescue installed on the system running this.
 
 	Run this command as root (su -, not sudo)
                 live-grub-stick isopath stickpartition
@@ -62,7 +64,9 @@ live-grub-stick
 
 	To add various distribution iso to the stick, run the following:
 		For openSUSE    : live-grub-stick --suse /path/to/openSUSE-filename.iso /dev/sdXY
-		For Ubuntu      : live-grub-stick --ubuntu /path/to/ubuntu-filename.iso /dev/sdXY
+                For openSUSE with persistence    : live-grub-stick --suse-persistent /path/to/openSUSE-filename.iso /dev/sdXY
+                For Ubuntu clones     : live-grub-stick --ubuntu /path/to/ubuntu-filename.iso /dev/sdXY
+                For Ubuntu clones with persistence      : live-grub-stick --ubuntu-persistent /path/to/ubuntu-filename.iso /dev/sdXY
 		For Mint        : live-grub-stick --mint /path/to/mint-filename.iso /dev/sdXY
 		For Fedora      : live-grub-stick --fedora /path/to/fedora-filename.iso /dev/sdXY
 		For iPXE        : live-grub-stick --ipxe /path/to/ipxe.iso /dev/sdXY
@@ -86,7 +90,7 @@ live-grub-stick
 
 live-usb-gui
 ==============
-	Simple zenity/kdialog based GUI that runs live-fat-stick script
+	Simple zenity/kdialog based GUI that runs live-fat-stick or live-grub-stick script
 
 	Copy live-usb-gui to /usr/bin/ and chmod +x /usr/bin/live-usb-gui
 	Copy live-usb-gui.desktop to /usr/share/applications/ and update-desktop-database -q
@@ -108,7 +112,7 @@ live-usb-gui
 	openSUSE users can install it via 1-click from here:
 	http://software.opensuse.org/package/live-usb-gui
 
-	Note: Requires: live-fat-stick, zenity/kdialog, syslinux and dd_rescue installed 
+	Note: Requires: live-fat-stick or live-grub-stick, zenity/kdialog, syslinux and dd_rescue installed 
 	on the system running this.
 
 

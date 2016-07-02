@@ -82,7 +82,9 @@ need_help() {
 
         To add various distribution iso to the stick, run the following:
                 For openSUSE    : live-grub-stick --suse /path/to/openSUSE-filename.iso /dev/sdXY
-                For Ubuntu      : live-grub-stick --ubuntu /path/to/ubuntu-filename.iso /dev/sdXY
+                For openSUSE with persistence    : live-grub-stick --suse-persistent /path/to/openSUSE-filename.iso /dev/sdXY
+                For Ubuntu clones     : live-grub-stick --ubuntu /path/to/ubuntu-filename.iso /dev/sdXY
+                For Ubuntu clones with persistence      : live-grub-stick --ubuntu-persistent /path/to/ubuntu-filename.iso /dev/sdXY
                 For Mint        : live-grub-stick --mint /path/to/mint-filename.iso /dev/sdXY
                 For Fedora      : live-grub-stick --fedora /path/to/fedora-filename.iso /dev/sdXY
                 For iPXE        : live-grub-stick --ipxe /path/to/ipxe.iso /dev/sdXY
@@ -119,6 +121,14 @@ while [ $# -gt 2 ]; do
                 ;;
                 --ubuntu|--mint)
                 distroname=ubuntu
+                ;;
+                --suse-persistent|--opensuse-persistent)
+                distroname=suse
+		PERSISTENT_IMAGE=true
+                ;;
+                --ubuntu-persistent|--mint-persistent)
+                distroname=ubuntu
+                PERSISTENT_IMAGE=true
                 ;;
 		--isohybrid)
 		distroname=isohybrid
@@ -159,6 +169,10 @@ if [[ x"$2" == x ]]; then
 fi
 if lsb_release -i | grep -qi suse; then
 	grubinstall='grub2-install'
+	if [[ ! -e $(which qemu-img) ]]; then
+        	echo "qemu-img not found, please install qemu-tools package"
+        	exit 1
+	fi
 else
 	grubinstall='grub-install'
 fi
@@ -195,6 +209,7 @@ stickpart=$(basename $2 | sed 's/[a-z]*//g')
 stickdevpart=$2
 liveusbgui=/tmp/liveusbgui
 benice="nice ionice -c3"
+cowsize=${cowsize:-500M}
 
 if [[ $isoname != $isonametr ]]; then
 	echo "removing space/s from iso name copied to the destination disk"
@@ -206,7 +221,7 @@ if [[ ! -h /dev/disk/by-uuid/$stickuuid ]]; then
 fi
 
 if echo $isoname | grep -qi "Li-f-e" | grep -qi "suse"; then
-	isonameshort=openSUSE-Li-f-e
+	isonameshort="openSUSE-Li-f-e"
 fi
 are_you_sure ()  {
         echo  -n "$1 [$2/$3]? "
@@ -251,16 +266,35 @@ cfg_setup() {
 		fi
         fi
 	if [[ $distroname == suse ]]; then
-		appendsection="\$linux (loop)/boot/x86_64/loader/linux isofrom=/dev/disk/by-uuid/$stickuuid:/$isoname isofrom_device=/dev/disk/by-uuid/$stickuuid isofrom_system=/$isoname loader=syslinux splash=silent quiet showopts"
+		if [[ $PERSISTENT_IMAGE == true ]]; then
+                        echo "Creating image file for persistent data"
+			if ! qemu-img create $stickmount/boot/$isonameshort-cowfile $cowsize &>/dev/null;then
+				echo "Can't create cow file"
+				clean_up
+			fi
+			persistopts="kiwi_cowdevice=/dev/disk/by-uuid/$stickuuid kiwi_cowsystem=/boot/$isonameshort-cowfile"
+		fi
+		appendsection="\$linux (loop)/boot/x86_64/loader/linux isofrom=/dev/disk/by-uuid/$stickuuid:/$isoname isofrom_device=/dev/disk/by-uuid/$stickuuid isofrom_system=/$isoname $persistopts loader=syslinux splash=silent quiet showopts"
 		appendsection2="\$initrd (loop)/boot/x86_64/loader/initrd"
 	fi
 	if [[ $distroname == ubuntu ]]; then
+                if [[ $PERSISTENT_IMAGE == true ]]; then
+			mkdir -p $stickmount/$isonameshort
+                        echo "Creating image file for persistent data"
+                        if ! qemu-img create $stickmount/$isonameshort/casper-rw $cowsize &>/dev/null;then
+                                echo "Can't create cow file"
+                                clean_up
+                        fi
+			echo "Creating filesystem for persistent data"
+			mkfs.ext4 -F -O^has_journal -L casper-rw $stickmount/$isonameshort/casper-rw
+			persistopts="persistent persistent-path=/$isonameshort/"
+		fi
 		if [[ -e $isomount/casper/vmlinuz ]]; then
 			vmlinuzfile=/casper/vmlinuz
 		else
 			vmlinuzfile=/casper/vmlinuz.efi
 		fi
-		appendsection="linux (loop)/$vmlinuzfile boot=casper iso-scan/filename=/$isoname quiet splash"
+		appendsection="linux (loop)/$vmlinuzfile boot=casper iso-scan/filename=/$isoname $persistopts quiet splash"
 		appendsection2="initrd (loop)/casper/initrd.lz"
 	fi
 	if [[ $distroname == fedora ]]; then
