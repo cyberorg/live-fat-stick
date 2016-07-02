@@ -34,6 +34,9 @@ live-fat-stick
 
 	The stick partition has to be vfat/fat32 format if the image is not isohybrid.
 
+	Persistent option requires minimum 500M free space on the USB device apart from the spare needed by iso image.
+	To allocate more space for cow file use cowfile variable like this example: "export cowfile=1000M" before running the script
+
 	Please note that using isohybrid option will remove all existing data on the USB device
 	and create new partitions.
 
@@ -78,6 +81,9 @@ live-grub-stick
 
 	The stick partition has to be in a format supported by grub2 and the OS image if the image
 	is not isohybrid.
+
+        Persistent option requires minimum 500M free space on the USB device apart from the spare needed by iso image.
+        To allocate more space for cow file use cowfile variable like this example: "export cowfile=1000M" before running the script
 
 	Please note that using isohybrid option will remove all existing data on the USB device
 	and create new partitions.
