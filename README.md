@@ -20,9 +20,9 @@ live-fat-stick
 
 	To add various distribution iso to the stick, run the following:
 		For openSUSE	: live-fat-stick --suse /path/to/openSUSE-filename.iso /dev/sdXY
-                For openSUSE with persistence    : live-fat-stick --suse-persistent /path/to/openSUSE-filename.iso /dev/sdXY
-                For Ubuntu clones     : live-fat-stick --ubuntu /path/to/ubuntu-filename.iso /dev/sdXY
-                For Ubuntu clones with persistence      : live-grub-stick --ubuntu-persistent /path/to/ubuntu-filename.iso /dev/sdXY
+		For openSUSE with persistence    : live-fat-stick --suse-persistent /path/to/openSUSE-filename.iso /dev/sdXY
+		For Ubuntu clones     : live-fat-stick --ubuntu /path/to/ubuntu-filename.iso /dev/sdXY
+		For Ubuntu clones with persistence      : live-grub-stick --ubuntu-persistent /path/to/ubuntu-filename.iso /dev/sdXY
 		For Mint	: live-fat-stick --mint /path/to/mint-filename.iso /dev/sdXY
 		For Fedora	: live-fat-stick --fedora /path/to/fedora-filename.iso /dev/sdXY
 		For iPXE        : live-fat-stick --ipxe /path/to/ipxe.iso /dev/sdXY
@@ -64,9 +64,9 @@ live-grub-stick
 
 	To add various distribution iso to the stick, run the following:
 		For openSUSE    : live-grub-stick --suse /path/to/openSUSE-filename.iso /dev/sdXY
-                For openSUSE with persistence    : live-grub-stick --suse-persistent /path/to/openSUSE-filename.iso /dev/sdXY
-                For Ubuntu clones     : live-grub-stick --ubuntu /path/to/ubuntu-filename.iso /dev/sdXY
-                For Ubuntu clones with persistence      : live-grub-stick --ubuntu-persistent /path/to/ubuntu-filename.iso /dev/sdXY
+		For openSUSE with persistence    : live-grub-stick --suse-persistent /path/to/openSUSE-filename.iso /dev/sdXY
+		For Ubuntu clones     : live-grub-stick --ubuntu /path/to/ubuntu-filename.iso /dev/sdXY
+		For Ubuntu clones with persistence      : live-grub-stick --ubuntu-persistent /path/to/ubuntu-filename.iso /dev/sdXY
 		For Mint        : live-grub-stick --mint /path/to/mint-filename.iso /dev/sdXY
 		For Fedora      : live-grub-stick --fedora /path/to/fedora-filename.iso /dev/sdXY
 		For iPXE        : live-grub-stick --ipxe /path/to/ipxe.iso /dev/sdXY
