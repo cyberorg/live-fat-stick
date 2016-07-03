@@ -273,9 +273,10 @@ cfg_setup() {
                         echo "Creating image file for persistent data"
 			if ! qemu-img create $stickmount/boot/$isonameshort-cowfile $cowsize &>/dev/null;then
 				echo "Can't create cow file"
-				clean_up
+			else
+	                        persistopts="kiwi_cowdevice=/dev/disk/by-uuid/$stickuuid kiwi_cowsystem=/boot/$isonameshort-cowfile"
+
 			fi
-			persistopts="kiwi_cowdevice=/dev/disk/by-uuid/$stickuuid kiwi_cowsystem=/boot/$isonameshort-cowfile"
 		fi
 		appendsection="\$linux (loop)/boot/x86_64/loader/linux isofrom=/dev/disk/by-uuid/$stickuuid:/$isoname isofrom_device=/dev/disk/by-uuid/$stickuuid isofrom_system=/$isoname $persistopts loader=syslinux splash=silent quiet showopts"
 		appendsection2="\$initrd (loop)/boot/x86_64/loader/initrd"
@@ -286,11 +287,11 @@ cfg_setup() {
                         echo "Creating image file for persistent data"
                         if ! qemu-img create $stickmount/$isonameshort/casper-rw $cowsize &>/dev/null;then
                                 echo "Can't create cow file"
-                                clean_up
+			else
+	                        echo "Creating filesystem for persistent data"
+        	                mkfs.ext4 -F -O^has_journal -L casper-rw $stickmount/$isonameshort/casper-rw
+                	        persistopts="persistent persistent-path=/$isonameshort/"
                         fi
-			echo "Creating filesystem for persistent data"
-			mkfs.ext4 -F -O^has_journal -L casper-rw $stickmount/$isonameshort/casper-rw
-			persistopts="persistent persistent-path=/$isonameshort/"
 		fi
 		if [[ -e $isomount/casper/vmlinuz ]]; then
 			vmlinuzfile=/casper/vmlinuz
