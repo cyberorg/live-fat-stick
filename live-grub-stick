@@ -91,6 +91,9 @@ need_help() {
 
                 For isohybrid   : live-grub-stick --isohybrid /path/to/isohybridimage.iso /dev/sdX
 
+        Standard openSUSE installation DVD iso can also be written with --suse option when used
+        with live-grub-stick on non-vfat partition.
+
         isopath should be full absolute path of iso image and the device should be 
         actual partition on the stick like /dev/sdb1, /dev/sdc1,/dev/sdc2...
 

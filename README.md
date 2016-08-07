@@ -76,6 +76,9 @@ live-grub-stick
 
 		For isohybrid   : live-grub-stick --isohybrid /path/to/isohybridimage.iso /dev/sdX
 
+        Standard openSUSE installation DVD iso can also be written with --suse option when used
+        with live-grub-stick on non-vfat partition.
+
 	isopath should be full absolute path of iso image and the device should be 
 	actual partition on the stick like /dev/sdb1, /dev/sdc1,/dev/sdc2...
 
@@ -110,7 +113,11 @@ live-usb-gui
 	Alt+F2 and xdg-su -c "xterm -e live-usb-gui"
 
 	For iso images processed with isohybrid such as openSUSE installation DVD and UEFI boot support
-	and any other Linux distributions select "isohybrid" from distribution selection dialog.
+	and any other Linux distributions select "isohybrid" from distribution selection dialog. This
+	will erase all the data from the USB stick.
+
+	Standard openSUSE installation DVD iso can also be written with --suse option when used
+	with live-grub-stick on non-vfat partition.
 
 	Please note that USB created using isohybrid mode will be wiped out completely and
 	will not be usable from Windows OS, so back up the data from the USB stick before hand.
