@@ -275,10 +275,9 @@ cfg_setup() {
 				echo "Can't create cow file"
 			else
 	                        persistopts="kiwi_cowdevice=/dev/disk/by-uuid/$stickuuid kiwi_cowsystem=/boot/$isonameshort-cowfile"
-
 			fi
 		fi
-		appendsection="\$linux (loop)/boot/x86_64/loader/linux isofrom=/dev/disk/by-uuid/$stickuuid:/$isoname isofrom_device=/dev/disk/by-uuid/$stickuuid isofrom_system=/$isoname $persistopts loader=syslinux splash=silent quiet showopts"
+		appendsection="\$linux (loop)/boot/x86_64/loader/linux isofrom=/dev/disk/by-uuid/$stickuuid:/$isoname isofrom_device=/dev/disk/by-uuid/$stickuuid isofrom_system=/$isoname $persistopts install=hd:/$isoname loader=syslinux splash=silent quiet showopts"
 		appendsection2="\$initrd (loop)/boot/x86_64/loader/initrd"
 	fi
 	if [[ $distroname == ubuntu ]]; then
