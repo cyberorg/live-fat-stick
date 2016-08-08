@@ -197,6 +197,7 @@ fi
 distroname=${distroname:-suse}
 isomount=$(mktemp -d)
 isopath=$(readlink -f "$1")
+isosize=$(du "$isopath")
 iso_symlink=$(mktemp) ; rm $iso_symlink ; ln -s "$isopath" $iso_symlink
 stickmount=$(mktemp -d)
 stickdevice=$(echo $2 | sed 's/[0-9]*//g')
@@ -212,7 +213,13 @@ stickdevpart=$2
 liveusbgui=/tmp/liveusbgui
 benice="nice ionice -c3"
 cowsize=${cowsize:-500M}
-
+if [[ $distroname != isohybrid ]]; then
+	if [[ $isosize > 410000 ]]; then
+		echo "ISO size is larger than that allowed on vfat partition"
+		echo "Use live-grub-stick script on grub supported partition format"
+	        exit 1
+	fi
+fi
 if [[ $isoname != $isonametr ]]; then
 	echo "removing space/s from iso name copied to the destination disk"
 	export isoname=$isonametr

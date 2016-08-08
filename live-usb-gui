@@ -127,7 +127,7 @@ if [ ! "$option" ]; then
 fi
 questiontitle="Is the information below correct?"
 questiontext="Distribution: $distroname \nISO image: $sourceiso \nUSB device: $usbdevice"
-errortext="oops, something went wrong"
+errortext="oops, something went wrong, try live-fat-stick or live-grub-stick from terminal"
 successtext="Your bootable usb device is now ready"
 if [[ $popup == zenity ]]; then
 	if ! zenity --question --title="$questiontitle" --text "$questiontext"; then
