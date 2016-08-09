@@ -203,7 +203,7 @@ distroname=${distroname:-suse}
 isomount=$(mktemp -d)
 isopath=$(readlink -f "$1")
 iso_symlink=$(mktemp) ; rm $iso_symlink ; ln -s "$isopath" $iso_symlink
-isosize=$(du "$isopath") #410000
+isosize=$(stat -c%s "$isopath")
 stickmount=$(mktemp -d)
 stickdevice=$(echo $2 | sed 's/[0-9]*//g')
 stickbase=$(basename $2)
@@ -218,7 +218,7 @@ liveusbgui=/tmp/liveusbgui
 benice="nice ionice -c3"
 cowsize=${cowsize:-500M}
 if [[ $distroname != isohybrid ]]; then
-	if [[ $isosize > 410000 ]]; then
+	if [[ $isosize > 4187593113 ]]; then
 		if [[ $(blkid -s TYPE -o value "$2") == vfat ]];then
 			echo "ISO size is larger than that allowed on vfat partition, exiting"
 			echo "use grub supported partition format(ext3/4) that allow larger file size"
@@ -444,10 +444,10 @@ else
 		isopath=$iso_symlink
 		echo "copying $isoname to usb stick"
 		try_cp_with_progress "$1" "$stickmount/$isoname"
-#		if [[ $isosize != $(du "$stickmount/$isoname") ]]; then
-#			echo "Source and destination image does not match"
-#			exit 1
-#		fi
+		if [[ $isosize != $(stat -c%s "$stickmount/$isoname") ]]; then
+			echo "Source and destination image does not match"
+			exit 1
+		fi
 	fi
         if [[ -d /boot/grub2 ]]; then
                 grub2pathreal=/boot/grub2

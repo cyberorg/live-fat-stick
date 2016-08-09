@@ -197,7 +197,7 @@ fi
 distroname=${distroname:-suse}
 isomount=$(mktemp -d)
 isopath=$(readlink -f "$1")
-isosize=$(du "$isopath")
+isosize=$(stat -c%s "$isopath")
 iso_symlink=$(mktemp) ; rm $iso_symlink ; ln -s "$isopath" $iso_symlink
 stickmount=$(mktemp -d)
 stickdevice=$(echo $2 | sed 's/[0-9]*//g')
@@ -214,7 +214,7 @@ liveusbgui=/tmp/liveusbgui
 benice="nice ionice -c3"
 cowsize=${cowsize:-500M}
 if [[ $distroname != isohybrid ]]; then
-	if [[ $isosize > 410000 ]]; then
+	if [[ $isosize > 4187593113 ]]; then
 		echo "ISO size is larger than that allowed on vfat partition"
 		echo "Use live-grub-stick script on grub supported partition format"
 	        exit 1
@@ -431,10 +431,10 @@ else
 		if [[ $distroname != fedora ]]; then
 			echo "copying $isoname to usb stick"
 			try_cp_with_progress "$1" "$stickmount/$isoname"
-#			if [[ $isosize != $(du "$stickmount/$isoname") ]]; then
-#				echo "Source and destination image does not match"
-#				exit 1
-#			fi
+			if [[ $isosize != $(stat -c%s "$stickmount/$isoname") ]]; then
+				echo "Source and destination image does not match"
+				exit 1
+			fi
 		fi
 	fi
 	if [[ -f $stickmount/fatstick ]]; then
