@@ -444,10 +444,10 @@ else
 		isopath=$iso_symlink
 		echo "copying $isoname to usb stick"
 		try_cp_with_progress "$1" "$stickmount/$isoname"
-		if [[ $isosize != $(du "$stickmount/$isoname") ]]; then
-			echo "Source and destination image does not match"
-			exit 1
-		fi
+#		if [[ $isosize != $(du "$stickmount/$isoname") ]]; then
+#			echo "Source and destination image does not match"
+#			exit 1
+#		fi
 	fi
         if [[ -d /boot/grub2 ]]; then
                 grub2pathreal=/boot/grub2

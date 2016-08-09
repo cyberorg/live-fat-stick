@@ -39,6 +39,9 @@ clean_up () {
         if [[ -f $liveusbgui ]]; then
                 rm $liveusbgui &>/dev/null
         fi
+	if [[ -f $statusfile ]]; then
+		rm $statusfile
+	fi
 }
 
 fileselecttitle="Select distribution iso file"
@@ -146,15 +149,15 @@ else
 	        exit 1
 	fi	
 fi
-
+statusfile=$(mktemp)
 if [[ $option == isohybrid ]]; then
 	usbdev=$(echo $usbdevice | sed 's/[0-9]*//g')
-	xterm -e "$scriptorun --isohybrid $sourceiso $usbdev"
+	xterm -e "$scriptorun --isohybrid $sourceiso $usbdev; echo $? > $statusfile"
 else
-	xterm -e "$scriptorun $option $sourceiso $usbdevice"
+	xterm -e "$scriptorun $option $sourceiso $usbdevice; echo $? > $statusfile"
 fi
 
-if [ $? != 0 ]; then
+if [ $(cat $statusfile) != 0 ]; then
 	if [[ $popup == zenity ]]; then
 		zenity --error --text="$errortext"
 	else
