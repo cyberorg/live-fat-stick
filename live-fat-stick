@@ -214,7 +214,7 @@ liveusbgui=/tmp/liveusbgui
 benice="nice ionice -c3"
 cowsize=${cowsize:-500M}
 if [[ $distroname != isohybrid ]]; then
-	if [[ $isosize > 4187593113 ]]; then
+	if [[ $isosize -gt 4187593113 ]]; then
 		echo "ISO size is larger than that allowed on vfat partition"
 		echo "Use live-grub-stick script on grub supported partition format"
 	        exit 1
