@@ -150,7 +150,6 @@ else
 	fi	
 fi
 statusfile=$(mktemp)
-echo 0 > $statusfile
 if [[ $option == isohybrid ]]; then
 	usbdev=$(echo $usbdevice | sed 's/[0-9]*//g')
 	xterm -e "($scriptorun --isohybrid $sourceiso $usbdev || echo 1 > $statusfile)"
@@ -158,7 +157,7 @@ else
 	xterm -e "($scriptorun $option $sourceiso $usbdevice || echo 1 > $statusfile)"
 fi
 
-if [[ $(cat $statusfile) != 0 ]]; then
+if [[ $(cat $statusfile) == 1 ]]; then
 	if [[ $popup == zenity ]]; then
 		zenity --error --text="$errortext"
 	else
