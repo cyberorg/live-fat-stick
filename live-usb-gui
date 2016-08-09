@@ -150,6 +150,7 @@ else
 	fi	
 fi
 statusfile=$(mktemp)
+echo 0 > $statusfile
 if [[ $option == isohybrid ]]; then
 	usbdev=$(echo $usbdevice | sed 's/[0-9]*//g')
 	xterm -e "($scriptorun --isohybrid $sourceiso $usbdev || echo 1 > $statusfile)"
