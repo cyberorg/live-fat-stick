@@ -19,13 +19,13 @@ e.g.:
 live-fat-stick /home/geeko/openSUSE-Edu-li-f-e-12.2-1-i686.iso /dev/sdXY
 
 To add various distribution iso to the stick, run the following:
-For openSUSE: live-fat-stick --suse /path/to/openSUSE-filename.iso /dev/sdXY
-For openSUSE with persistence    : live-fat-stick --suse-persistent /path/to/openSUSE-filename.iso /dev/sdXY
-For Ubuntu clones     : live-fat-stick --ubuntu /path/to/ubuntu-filename.iso /dev/sdXY
-For Ubuntu clones with persistence      : live-grub-stick --ubuntu-persistent /path/to/ubuntu-filename.iso /dev/sdXY
-For Mint: live-fat-stick --mint /path/to/mint-filename.iso /dev/sdXY
-For Fedora: live-fat-stick --fedora /path/to/fedora-filename.iso /dev/sdXY
-For iPXE: live-fat-stick --ipxe /path/to/ipxe.iso /dev/sdXY
+	For openSUSE: live-fat-stick --suse /path/to/openSUSE-filename.iso /dev/sdXY
+	For openSUSE with persistence    : live-fat-stick --suse-persistent /path/to/openSUSE-filename.iso /dev/sdXY
+	For Ubuntu clones     : live-fat-stick --ubuntu /path/to/ubuntu-filename.iso /dev/sdXY
+	For Ubuntu clones with persistence      : live-grub-stick --ubuntu-persistent /path/to/ubuntu-filename.iso /dev/sdXY
+	For Mint: live-fat-stick --mint /path/to/mint-filename.iso /dev/sdXY
+	For Fedora: live-fat-stick --fedora /path/to/fedora-filename.iso /dev/sdXY
+	For iPXE: live-fat-stick --ipxe /path/to/ipxe.iso /dev/sdXY
 
 For isohybrid: live-fat-stick --isohybrid /path/to/isohybridimage.iso /dev/sdX
 
@@ -66,15 +66,15 @@ e.g.:
 live-grub-stick /home/geeko/openSUSE-Edu-li-f-e-12.2-1-i686.iso /dev/sdXY
 
 To add various distribution iso to the stick, run the following:
-For openSUSE    : live-grub-stick --suse /path/to/openSUSE-filename.iso /dev/sdXY
-For openSUSE with persistence    : live-grub-stick --suse-persistent /path/to/openSUSE-filename.iso /dev/sdXY
-For Ubuntu clones     : live-grub-stick --ubuntu /path/to/ubuntu-filename.iso /dev/sdXY
-For Ubuntu clones with persistence      : live-grub-stick --ubuntu-persistent /path/to/ubuntu-filename.iso /dev/sdXY
-For Mint: live-grub-stick --mint /path/to/mint-filename.iso /dev/sdXY
-For Fedora      : live-grub-stick --fedora /path/to/fedora-filename.iso /dev/sdXY
-For iPXE: live-grub-stick --ipxe /path/to/ipxe.iso /dev/sdXY
+	For openSUSE    : live-grub-stick --suse /path/to/openSUSE-filename.iso /dev/sdXY
+	For openSUSE with persistence    : live-grub-stick --suse-persistent /path/to/openSUSE-filename.iso /dev/sdXY
+	For Ubuntu clones     : live-grub-stick --ubuntu /path/to/ubuntu-filename.iso /dev/sdXY
+	For Ubuntu clones with persistence      : live-grub-stick --ubuntu-persistent /path/to/ubuntu-filename.iso /dev/sdXY
+	For Mint: live-grub-stick --mint /path/to/mint-filename.iso /dev/sdXY
+	For Fedora      : live-grub-stick --fedora /path/to/fedora-filename.iso /dev/sdXY
+	For iPXE: live-grub-stick --ipxe /path/to/ipxe.iso /dev/sdXY
 
-For isohybrid   : live-grub-stick --isohybrid /path/to/isohybridimage.iso /dev/sdX
+	For isohybrid   : live-grub-stick --isohybrid /path/to/isohybridimage.iso /dev/sdX
 
 Standard openSUSE DVD or NET installation iso can also be written with --suse option when used
 with live-grub-stick, openSUSE DVD on non-vfat partition and NET installation on vfat parition.
