@@ -123,7 +123,7 @@ live-usb-gui
 	will not be usable from Windows OS, so back up the data from the USB stick before hand.
 
 	openSUSE users can install it via 1-click from here:
-	[http://software.opensuse.org/package/live-usb-gui]
+	<http://software.opensuse.org/package/live-usb-gui>
 
 	Note: Requires: live-fat-stick or live-grub-stick, zenity/kdialog, syslinux and dd_rescue installed 
 	on the system running this.
