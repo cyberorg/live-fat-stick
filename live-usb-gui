@@ -32,7 +32,6 @@ fi
 popup=${popup:-zenity}
 scriptorun=${scriptorun:-live-fat-stick}
 which $popup &>/dev/null || echo "$popup not found, please install to use this tool"
-which $scriptorun &>/dev/null || echo "$scriptorun script not found in PATH, please install it and make it executable"
 
 export liveusbgui=/tmp/liveusbgui
 touch /tmp/liveusbgui
@@ -48,7 +47,14 @@ fileselectfilter="*iso"
 usbselecttitle="Select the target USB device"
 distributionlist="suse suse-persistent fedora mint ubuntu ubuntu-persistent ipxe isohybrid"
 distrotitle="Select the distribution of the iso"
-scriptlist="live-grub-stick live-fat-stick"
+supportedscripts="live-grub-stick live-fat-stick"
+for i in $(echo "$supportedscripts"); do
+        if which $i > /dev/null 2>&1; then
+                scriptlist="$scriptlist $i"
+        else
+                scriptlist="$scriptlist"
+        fi
+done
 usbdevicelist=$(for i in `echo $(for i in $(find /dev/disk/by-path/ |grep usb); do readlink -f $i;done)`
 	do
         #	if [[ $(blkid -s TYPE -o value $i) == vfat ]];then
