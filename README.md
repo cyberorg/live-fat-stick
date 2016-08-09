@@ -43,7 +43,7 @@ live-fat-stick
 	Run live-fat-stick -l(or --list) to list the possible usb storage devices available.
 
 	openSUSE users can install it via 1-click from here:
-	http://software.opensuse.org/package/live-fat-stick
+	[http://software.opensuse.org/package/live-fat-stick](http://software.opensuse.org/package/live-fat-stick)
 
 live-grub-stick
 ==============
@@ -76,8 +76,8 @@ live-grub-stick
 
 		For isohybrid   : live-grub-stick --isohybrid /path/to/isohybridimage.iso /dev/sdX
 
-        Standard openSUSE installation DVD iso can also be written with --suse option when used
-        with live-grub-stick on non-vfat partition.
+	Standard openSUSE DVD or NET installation iso can also be written with --suse option when used
+        with live-grub-stick, openSUSE DVD on non-vfat partition and NET installation on vfat parition.
 
 	isopath should be full absolute path of iso image and the device should be 
 	actual partition on the stick like /dev/sdb1, /dev/sdc1,/dev/sdc2...
@@ -94,7 +94,7 @@ live-grub-stick
 	Run live-grub-stick -l(or --list) to list the possible usb storage devices available.
 
         openSUSE users can install it via 1-click from here:
-        http://software.opensuse.org/package/live-grub-stick
+        [http://software.opensuse.org/package/live-grub-stick](http://software.opensuse.org/package/live-grub-stick)
 
 
 live-usb-gui
@@ -116,14 +116,14 @@ live-usb-gui
 	and any other Linux distributions select "isohybrid" from distribution selection dialog. This
 	will erase all the data from the USB stick.
 
-	Standard openSUSE installation DVD iso can also be written with --suse option when used
-	with live-grub-stick on non-vfat partition.
+	Standard openSUSE DVD or NET installation iso can also be written with --suse option when used
+	with live-grub-stick, openSUSE DVD on non-vfat partition and NET installation on vfat parition.
 
 	Please note that USB created using isohybrid mode will be wiped out completely and
 	will not be usable from Windows OS, so back up the data from the USB stick before hand.
 
 	openSUSE users can install it via 1-click from here:
-	http://software.opensuse.org/package/live-usb-gui
+	[http://software.opensuse.org/package/live-usb-gui](http://software.opensuse.org/package/live-usb-gui)
 
 	Note: Requires: live-fat-stick or live-grub-stick, zenity/kdialog, syslinux and dd_rescue installed 
 	on the system running this.
