@@ -328,7 +328,7 @@ cfg_setup() {
 grub2_stuff () {
 	echo "installing grub2 on $stickdevice"
 	mkdir -p $stickmount/boot
-	$grubinstall --target=i386-pc --boot-directory=$stickmount/boot $stickdevice
+	$grubinstall --force --target=i386-pc --boot-directory=$stickmount/boot $stickdevice
 	echo "setting $stickdevice partition $stickpart active"
 	parted $stickdevice set $stickpart boot on &>/dev/null
 	cfg_setup
