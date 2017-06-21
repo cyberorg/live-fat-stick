@@ -48,8 +48,15 @@ fileselecttitle="Select distribution iso file"
 fileselectpath="/"
 fileselectfilter="*iso"
 usbselecttitle="Select the target USB device"
+usbselecttext="Select the correct device, usually the one with a number at the end;\n\
+usually device without a number at the end is for isohybrid."
+nousbmedia="No USB media found. Please insert USB stick and try again."
 distributionlist="suse suse-persistent fedora mint ubuntu ubuntu-persistent ipxe isohybrid"
 distrotitle="Select the distribution of the iso"
+scriptstitle="Select script to run"
+scriptstext="Select live-fat-stick for vfat/fat32 partition,\n\
+live-grub-stick for vfat/fat32/ntfs/etx3/ext4\n\
+and any other partition supported by grub2"
 supportedscripts="live-grub-stick live-fat-stick"
 for i in $(echo "$supportedscripts"); do
         if which $i > /dev/null 2>&1; then
@@ -64,6 +71,15 @@ usbdevicelist=$(for i in `echo $(for i in $(find /dev/disk/by-path/ |grep usb); 
         		echo $i
         #        fi
 done)
+if [ -z "$usbdevicelist" ] ; then
+	if [[ $popup == zenity ]]; then
+		zenity --error --text="$nousbmedia"
+	else
+		kdialog --error "$nousbmedia"
+	fi
+	clean_up
+	exit 1
+fi
 usbdevicelistkd=$(for device in $usbdevicelist; do
 	printf "%s %s %s" ${device} ${device} off 
 	printf "\n"
@@ -86,20 +102,20 @@ check_variable () {
 if [[ $popup == zenity ]]; then
 	sourceiso=$(zenity --file-selection --title="$fileselecttitle" --file-filter="$fileselectfilter")
 	check_variable $sourceiso
-	usbdevice=$(zenity --list --title="$usbselecttitle" --column="USB device" $usbdevicelist)
-	check_variable $usbdevice
 	distroname=$(zenity --list --title="distrotitle" --column="Distribution:" $distributionlist)
 	check_variable $distroname
-	scriptorun=$(zenity --list --title="Select script to run" --column="Scripts:" $scriptlist)
+	usbdevice=$(zenity --list --title="$usbselecttitle" --text "$usbselecttext" --column="USB device" $usbdevicelist)
+	check_variable $usbdevice
+	scriptorun=$(zenity --list --title="Select script to run" --text "$scriptstext" --column="Scripts:" $scriptlist)
         check_variable $scriptorun
 else
 	sourceiso=$(kdialog --title "$fileselecttitle" --getopenfilename "$fileselectpath" "$fileselectfilter")
 	check_variable $sourceiso
-	usbdevice=$(kdialog --separate-output --title "$usbselecttitle" --radiolist "USB device:" $usbdevicelistkd)
-	check_variable $usbdevice
 	distroname=$(kdialog --separate-output --title "$distrotitle" --radiolist "Distribution:" $distributionlistkd)
 	check_variable $distroname
-        scriptorun=$(kdialog --separate-output --title "Select script to run" --radiolist "Scripts:" $scriptlistkd)
+	usbdevice=$(kdialog --separate-output --title "$usbselecttitle" --radiolist "$usbselecttext" $usbdevicelistkd)
+	check_variable $usbdevice
+        scriptorun=$(kdialog --separate-output --title "$scriptstitle" --radiolist "$scriptstext" $scriptlistkd)
         check_variable $scriptorun
 fi
 
