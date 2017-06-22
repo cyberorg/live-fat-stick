@@ -55,7 +55,7 @@ distributionlist="suse suse-persistent fedora mint ubuntu ubuntu-persistent ipxe
 distrotitle="Select the distribution of the iso"
 scriptstitle="Select script to run"
 scriptstext="Select live-fat-stick for vfat/fat32 partition,\n\
-live-grub-stick for vfat/fat32/ntfs/etx3/ext4\n\
+live-grub-stick for vfat/fat32/ntfs/ext3/ext4\n\
 and any other partition supported by grub2"
 supportedscripts="live-grub-stick live-fat-stick"
 for i in $(echo "$supportedscripts"); do
