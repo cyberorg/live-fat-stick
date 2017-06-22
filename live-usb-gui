@@ -52,6 +52,8 @@ usbselecttext="Select the correct device, usually the one with a number at the e
 usually device without a number at the end is for isohybrid."
 nousbmedia="No USB media found. Please insert USB stick and try again."
 distributionlist="suse suse-persistent fedora mint ubuntu ubuntu-persistent ipxe isohybrid"
+distributionlisttext="isohybrid should work for most distribution iso images and EFI booting,\n\
+persistent preserve changes in live system after reboots."
 distrotitle="Select the distribution of the iso"
 scriptstitle="Select script to run"
 scriptstext="Select live-fat-stick for vfat/fat32 partition,\n\
@@ -102,7 +104,7 @@ check_variable () {
 if [[ $popup == zenity ]]; then
 	sourceiso=$(zenity --file-selection --title="$fileselecttitle" --file-filter="$fileselectfilter")
 	check_variable $sourceiso
-	distroname=$(zenity --list --title="distrotitle" --column="Distribution:" $distributionlist)
+	distroname=$(zenity --list --title="$distrotitle" --text "$distributionlisttext" --column="Distribution:" $distributionlist)
 	check_variable $distroname
 	usbdevice=$(zenity --list --title="$usbselecttitle" --text "$usbselecttext" --column="USB device" $usbdevicelist)
 	check_variable $usbdevice
@@ -111,7 +113,7 @@ if [[ $popup == zenity ]]; then
 else
 	sourceiso=$(kdialog --title "$fileselecttitle" --getopenfilename "$fileselectpath" "$fileselectfilter")
 	check_variable $sourceiso
-	distroname=$(kdialog --separate-output --title "$distrotitle" --radiolist "Distribution:" $distributionlistkd)
+	distroname=$(kdialog --separate-output --title "$distrotitle" --radiolist "$distributionlisttext" $distributionlistkd)
 	check_variable $distroname
 	usbdevice=$(kdialog --separate-output --title "$usbselecttitle" --radiolist "$usbselecttext" $usbdevicelistkd)
 	check_variable $usbdevice
