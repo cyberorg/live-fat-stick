@@ -294,14 +294,15 @@ cfg_setup() {
 	fi
 	if [[ $distroname == ubuntu ]]; then
                 if [[ $PERSISTENT_IMAGE == true ]]; then
-			mkdir -p $stickmount/$isonameshort
+			cowfolder=$isonameshort-cow
+			mkdir -p $stickmount/$cowfolder
                         echo "Creating image file for persistent data"
-                        if ! qemu-img create $stickmount/$isonameshort/casper-rw $cowsize &>/dev/null;then
+                        if ! qemu-img create $stickmount/$cowfolder/casper-rw $cowsize &>/dev/null;then
                                 echo "Can't create cow file"
 			else
-	                        echo "Creating filesystem for persistent data"
-        	                mkfs.ext4 -F -O^has_journal -L casper-rw $stickmount/$isonameshort/casper-rw
-                	        persistopts="persistent persistent-path=/$isonameshort/"
+				echo "Creating filesystem for persistent data"
+				mkfs.ext4 -F -O^has_journal -L casper-rw $stickmount/$cowfolder/casper-rw
+				persistopts="persistent persistent-path=/$cowfolder/"
                         fi
 		fi
 		if [[ -e $isomount/casper/vmlinuz ]]; then
