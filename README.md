@@ -60,7 +60,7 @@ if the iso file exceeds this limit.
 Note2: Install 32bit/x86 iso on the stick first if creating multiboot with both
 x86 and x86_64 arch images.
 
-Note3: Requires: grub2, fuseiso, qemu-img and dd_rescue/ddrescue installed on the system running this.
+Note3: Requires: grub2, fuseiso, qemu-img and dd_rescue/ddrescue installed on the system running this. On Ubuntu grub-pc-bin package is also needed.
 
 Run this command as root (su -, not sudo)
 live-grub-stick isopath stickpartition
