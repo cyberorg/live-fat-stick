@@ -75,7 +75,7 @@ need_help() {
         Note2: Install 32bit/x86 iso on the stick first if creating multiboot with both
         x86 and x86_64 arch images.
 
-        Note3: Requires: syslinux, fuseiso and dd_rescue/ddrescue installed on the system running this.
+        Note3: Requires: syslinux and dd_rescue/ddrescue installed on the system running this.
 
         Run this command as root (su -, not sudo)
                 live-fat-stick isopath stickpartition
@@ -176,10 +176,6 @@ if [[ ! -e /usr/bin/syslinux ]]; then
 	echo "syslinux not found, please install syslinux package"
 	exit 1
 fi
-if [[ ! -e /usr/bin/fuseiso ]]; then
-        echo "fuseiso not found, please install fuseiso package"
-        exit 1
-fi
 if [[ ! -e $(which qemu-img) ]]; then
        	echo "qemu-img not found, please install qemu-tools package"
        	exit 1
@@ -255,7 +251,7 @@ try_cp_with_progress () {
 	fi
 }
 copy_kernel_initrd () {
-	fuseiso $isopath $isomount &>/dev/null
+	mount -o loop $isopath $isomount &>/dev/null
 	echo "copying kernel and initrd from iso image to $stickdevpart"
 	if [[ $distroname == suse ]]; then
 		if [[ $PERSISTENT_IMAGE == true ]]; then
