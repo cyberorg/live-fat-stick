@@ -9,7 +9,7 @@ live CD/DVD iso file should not exceed this limit.
 Note2: Install 32bit/x86 iso on the stick first if creating multiboot with both
 x86 and x86_64 arch images.
 
-Note3: Requires: syslinux, fuseiso, qemu-img and dd_rescue/ddrescue installed on the system running this.
+Note3: Requires: syslinux, qemu-img and dd_rescue/ddrescue installed on the system running this.
 
 Copy live-fat-stick to /usr/bin/ and chmod +x /usr/bin/live-fat-stick
 
@@ -60,7 +60,7 @@ if the iso file exceeds this limit.
 Note2: Install 32bit/x86 iso on the stick first if creating multiboot with both
 x86 and x86_64 arch images.
 
-Note3: Requires: grub2, fuseiso, qemu-img and dd_rescue/ddrescue installed on the system running this. On Ubuntu grub-pc-bin package is also needed.
+Note3: Requires: grub2, qemu-img and dd_rescue/ddrescue installed on the system running this. On Ubuntu grub-pc-bin package is also needed.
 
 Run this command as root (su -, not sudo)
 live-grub-stick isopath stickpartition
