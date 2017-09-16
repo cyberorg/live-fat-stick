@@ -73,7 +73,7 @@ need_help() {
         Note2: Install 32bit/x86 iso on the stick first if creating multiboot with both
         x86 and x86_64 arch images.
 
-        Note3: Requires: grub2, fuseiso and dd_rescue/ddrescue installed on the system running this.
+        Note3: Requires: grub2 and dd_rescue/ddrescue installed on the system running this.
 
         Run this command as root (su -, not sudo)
                 live-grub-stick isopath stickpartition
@@ -186,10 +186,6 @@ if [[ ! -e $(which $grubinstall) ]]; then
 	echo "$grubinstall command not found, please install grub2 package"
 	exit 1
 fi
-if [[ ! -e $(which fuseiso) ]]; then
-        echo "fuseiso not found, please install fuseiso package"
-        exit 1
-fi
 if [[ ! -e $1 ]]; then
 	echo "File $1 does not exist"
 	exit 1
@@ -261,7 +257,7 @@ try_cp_with_progress () {
 	fi
 }
 cfg_setup() {
-	fuseiso $isopath $isomount &>/dev/null
+	mount -o loop $isopath $isomount &>/dev/null
         if [[ -d $stickmount/boot/grub2 ]]; then
                 grub2path=$stickmount/boot/grub2
                 grub2pathrealusb=/boot/grub2
