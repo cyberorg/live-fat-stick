@@ -23,7 +23,7 @@ To add various distribution iso to the stick, run the following:
 For openSUSE: live-fat-stick --suse /path/to/openSUSE-filename.iso /dev/sdXY
 For openSUSE with persistence    : live-fat-stick --suse-persistent /path/to/openSUSE-filename.iso /dev/sdXY
 For Ubuntu clones     : live-fat-stick --ubuntu /path/to/ubuntu-filename.iso /dev/sdXY
-For Ubuntu clones with persistence      : live-grub-stick --ubuntu-persistent /path/to/ubuntu-filename.iso /dev/sdXY
+For Ubuntu clones with persistence      : live-fat-stick --ubuntu-persistent /path/to/ubuntu-filename.iso /dev/sdXY
 For Mint: live-fat-stick --mint /path/to/mint-filename.iso /dev/sdXY
 For Fedora: live-fat-stick --fedora /path/to/fedora-filename.iso /dev/sdXY
 For iPXE: live-fat-stick --ipxe /path/to/ipxe.iso /dev/sdXY
