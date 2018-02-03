@@ -285,8 +285,17 @@ cfg_setup() {
 	                        persistopts="kiwi_cowdevice=/dev/disk/by-uuid/$stickuuid kiwi_cowsystem=/boot/$isonameshort-cowfile"
 			fi
 		fi
-		appendsection="\$linux (loop)/boot/x86_64/loader/linux isofrom=/dev/disk/by-uuid/$stickuuid:/$isoname isofrom_device=/dev/disk/by-uuid/$stickuuid isofrom_system=/$isoname $persistopts install=hd:/$isoname loader=syslinux splash=silent quiet showopts"
-		appendsection2="\$initrd (loop)/boot/x86_64/loader/initrd"
+		if [[ -e $isomount/boot/x86_64/loader/linux ]]; then
+			isoarch=x86_64
+		else
+			isoarch=ix86
+		fi
+		if [[ -e $isomount/LiveOS/squashfs.img ]]; then
+                        appendsection="\$linux (loop)/boot/$isoarch/loader/linux iso-scan/filename=/$isoname root=live:CDLABEL=$isolabel $persistopts install=hd:/$isoname loader=syslinux splash=silent quiet showopts"
+		else
+			appendsection="\$linux (loop)/boot/$isoarch/loader/linux isofrom=/dev/disk/by-uuid/$stickuuid:/$isoname isofrom_device=/dev/disk/by-uuid/$stickuuid isofrom_system=/$isoname $persistopts install=hd:/$isoname loader=syslinux splash=silent quiet showopts"
+		fi
+		appendsection2="\$initrd (loop)/boot/$isoarch/loader/initrd"
 	fi
 	if [[ $distroname == ubuntu ]]; then
                 if [[ $PERSISTENT_IMAGE == true ]]; then

@@ -271,7 +271,16 @@ copy_kernel_initrd () {
 		fi
 		cp $isomount/boot/*/loader/linux $syslinuxpath/linux-$isonameshort
 		cp $isomount/boot/*/loader/initrd $syslinuxpath/initrd-$isonameshort
-		appendsection="append initrd=initrd-$isonameshort isofrom=/dev/disk/by-uuid/$stickuuid:/$isoname isofrom_device=/dev/disk/by-uuid/$stickuuid isofrom_system=/$isoname loader=syslinux splash=silent  $persistopts quiet showopts"
+                if [[ -e $isomount/boot/x86_64/loader/linux ]]; then
+                        isoarch=x86_64
+                else
+                        isoarch=ix86
+                fi
+                if [[ -e $isomount/LiveOS/squashfs.img ]]; then
+			appendsection="append initrd=initrd-$isonameshort iso-scan/filename=/$isoname root=live:CDLABEL=$isolabel loader=syslinux splash=silent  $persistopts quiet showopts"
+		else
+			appendsection="append initrd=initrd-$isonameshort isofrom=/dev/disk/by-uuid/$stickuuid:/$isoname isofrom_device=/dev/disk/by-uuid/$stickuuid isofrom_system=/$isoname loader=syslinux splash=silent  $persistopts quiet showopts"
+		fi
 		isolinux_msg="display isolinux.msg"
 		ui="ui gfxboot bootlogo isolinux.msg"
 	fi
